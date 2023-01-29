@@ -6,8 +6,8 @@ use ruint::aliases::*;
 use z3_ext::ast::Bool;
 
 pub struct MachineRecord {
-    pub mem: MemChange,
-    pub stack: StackChange,
+    pub mem: Option<MemChange>,
+    pub stack: Option<StackChange>,
     pub pc: (usize, usize),
     pub constraints: Option<Bool<'static>>
 }

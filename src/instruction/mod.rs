@@ -185,7 +185,7 @@ impl<'ctx> MachineInstruction for Instruction {
                     ops: vec![stack_op_1, stack_op_2, stack_op_3],
                 };
                 MachineRecord {
-                    stack: stack_change,
+                    stack: Some(stack_change),
                     mem: Default::default(),
                     pc: (pc, pc + 1),
                     constraints: None
@@ -246,7 +246,7 @@ impl<'ctx> MachineInstruction for Instruction {
                     ops: vec![StackOp::Pop],
                 };
                 MachineRecord {
-                    stack: stack_rec,
+                    stack: Some(stack_rec),
                     pc: (pc, pc + 1),
                     mem: Default::default(),
                     constraints: None
@@ -277,7 +277,7 @@ impl<'ctx> MachineInstruction for Instruction {
                 };
 
                 MachineRecord {
-                    stack: stack_rec,
+                    stack: Some(stack_rec),
                     pc: (mach.pc(), jump_dest_concrete),
                     constraints: Some(cond),
                     mem: Default::default()
@@ -374,7 +374,7 @@ impl<'ctx> MachineInstruction for Instruction {
                 };
                 let pc = mach.pc();
                 MachineRecord {
-                    stack: stack_change,
+                    stack: Some(stack_change),
                     mem: Default::default(),
                     pc: (pc, pc + 1),
                     constraints: None

@@ -146,8 +146,14 @@ impl MachineComponent for Evm<'_> {
     fn apply_change(&mut self, rec: Self::Record) {
         let MachineRecord {pc, stack, mem, constraints} = rec;
         let mut state = self.states.val.clone();
-        state.stack_apply(stack);
-        state.mem_apply(mem);
+        if let Some(stack_rec) = stack {
+            state.stack_apply(stack_rec);
+        }
+    
+        if let Some(mem_rec) = mem {
+            state.mem_apply(mem_rec);
+        }
+     
         
         
         if constraints.is_none() {
