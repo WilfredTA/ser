@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use ruint::aliases::U256;
 
-use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::Machine};
+use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Machine, MachineState, EvmState}};
 
 use super::smt::*;
 
@@ -158,14 +158,14 @@ pub enum Instruction {
 
 
 pub trait MachineInstruction {
-    fn exec(&self, mach: impl AsRef<dyn Machine<PC = usize, Record = MachineRecord>>) -> MachineRecord;
+    fn exec(&self, mach: impl AsRef<dyn Machine<Record = MachineRecord, State = EvmState>>) -> MachineRecord;
 }
 
 
 impl<'ctx> MachineInstruction for Instruction {
-    fn exec(&self, mach: impl AsRef<dyn Machine<PC = usize, Record = MachineRecord>>) -> MachineRecord {
+    fn exec(&self, mach: impl AsRef<dyn Machine<Record = MachineRecord, State = EvmState>>) -> MachineRecord {
         let mach = mach.as_ref();
-
+        let mach = mach.state();
         match self {
             Instruction::Stop => todo!(),
             Instruction::Add => {

@@ -10,7 +10,7 @@ use crate::instruction::{Instruction, MachineInstruction};
 use crate::memory::*;
 
 
-pub trait Machine: MachineComponent {
+pub trait MachineState {
     type PC;
     fn pc(&self) -> Self::PC;
     fn stack(&self) ->  &Stack<32>;
@@ -19,10 +19,56 @@ pub trait Machine: MachineComponent {
     fn mem(&self) -> &Memory;
     fn mem_write(&mut self, idx: Index, val: BitVec<32>);
     fn mem_read(&self, idx: Index) -> BitVec<32>;
+
+}
+
+
+pub struct ExecutionSummary {
+    reachable: Vec<EvmState>,
+}
+
+impl ExecutionSummary {
+    pub fn new() -> Self {
+        Self {
+            reachable: vec![]
+        }
+    }
+
+    pub fn with_state(state: EvmState) -> Self {
+        Self {
+            reachable: vec![state]
+        }
+    }
+
+    pub fn with_states(states: Vec<EvmState>) -> Self {
+        Self {
+            reachable: states
+        }
+    }
+
+    pub fn falsify<'ctx>(&self, assertion: Bool<'ctx>) -> bool {
+        todo!()
+    }
+
+    pub fn rewind(&self, steps: usize) -> Self {
+        todo!()
+    }
+}
+
+
+pub trait Machine: MachineComponent {
+    type State: MachineState;
+
+    // All possible final states
+    fn exec(&self) -> ExecutionSummary;
     fn pgm(&self) -> Vec<Instruction>;
-    fn instruction(&self, pc: usize) -> Instruction;
+    fn instruction(&self) -> Instruction;
+    fn state(&self) -> Self::State;
+    fn state_ref(&self) -> &Self::State;
+    fn state_ref_mut(&mut self) -> &mut Self::State;
     fn path_conditions<'ctx>(&self) -> Vec<Bool<'ctx>>;
 }
+
 
 
 #[derive(Clone)]
@@ -120,3 +166,34 @@ impl MachineComponent for Evm<'_> {
 }
 
 
+impl MachineState for EvmState {
+    type PC = usize;
+
+    fn pc(&self) -> Self::PC {
+        self.pc
+    }
+
+    fn stack(&self) ->  &Stack<32> {
+        &self.stack
+    }
+
+    fn stack_push(&mut self, val: BitVec<32>) {
+       self.stack.push(val);
+    }
+
+    fn stack_pop(&mut self) -> BitVec<32> {
+        self.stack.pop()
+    }
+
+    fn mem(&self) -> &Memory {
+        &self.memory
+    }
+
+    fn mem_write(&mut self, idx: Index, val: BitVec<32>) {
+        self.memory.inner.insert(idx, val);
+    }
+
+    fn mem_read(&self, idx: Index) -> BitVec<32> {
+        self.memory.inner.get(&idx).cloned().unwrap_or_default().clone()
+    }
+}

@@ -14,6 +14,12 @@ pub struct BitVec<const SZ: u32> {
     typ: super::SolverType,
 }
 
+impl Default for BitVec<32> {
+    fn default() -> Self {
+        let ctx = ctx();
+        Self { inner: BVType::Z3(BV::from_u64(ctx, 0, 32)), typ: SolverType::Z3 }
+    }
+}
 
 impl<const SZ: u32> PartialEq for BitVec<SZ> {
     fn eq(&self, other: &Self) -> bool {

@@ -6,7 +6,7 @@ use crate::record::{Index, MemChange};
 
 #[derive(Clone)]
 pub struct Memory {
-    inner: HashMap<Index, BitVec<32>>
+    pub(crate) inner: HashMap<Index, BitVec<32>>
 }
 
 impl MachineComponent for Memory {
