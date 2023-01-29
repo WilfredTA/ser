@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use ruint::aliases::U256;
+use z3_ext::ast::{BV, Ast, Bool};
 
 use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Machine, MachineState, EvmState}};
 
@@ -257,7 +258,31 @@ impl<'ctx> MachineInstruction for Instruction {
             Instruction::SLoad => todo!(),
             Instruction::SStore => todo!(),
             Instruction::Jump => todo!(),
-            Instruction::JumpI => todo!(),
+            Instruction::JumpI => {
+                let jump_dest = mach.stack().peek().unwrap();
+                let cond = mach.stack().peek_nth(1).unwrap();
+                eprintln!("JUMP DEST: {:?}", jump_dest);
+                let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
+                eprintln!("JUMP DEST CONC: {:?}", jump_dest_concrete);
+                
+        
+                let bv_zero = BV::from_u64(ctx(), 0, 256);
+                let cond = cond.as_ref()._eq(&bv_zero);
+                let cond = Bool::not(&cond);
+        
+                let stack_rec = StackChange {
+                    pop_qty: 2,
+                    push_qty: 0,
+                    ops: vec![StackOp::Pop, StackOp::Pop]
+                };
+
+                MachineRecord {
+                    stack: stack_rec,
+                    pc: (mach.pc(), jump_dest_concrete),
+                    constraints: Some(cond),
+                    mem: Default::default()
+                }
+            },
             Instruction::Pc => todo!(),
             Instruction::MSize => todo!(),
             Instruction::Gas => todo!(),

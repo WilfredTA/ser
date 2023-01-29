@@ -19,6 +19,8 @@ pub trait MachineState {
     fn mem(&self) -> &Memory;
     fn mem_write(&mut self, idx: Index, val: BitVec<32>);
     fn mem_read(&self, idx: Index) -> BitVec<32>;
+    fn stack_apply(&mut self, stack_rec: StackChange);
+    fn mem_apply(&mut self, mem_rec: MemChange);
 
 }
 
@@ -71,7 +73,7 @@ pub trait Machine: MachineComponent {
 
 
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct StateTree<'ctx> {
     pub(crate) val: EvmState,
     pub(crate) path_condition: Bool<'ctx>,
@@ -125,7 +127,8 @@ impl<'ctx> Iterator for StateTree<'ctx> {
 }
 
 
-#[derive(Clone)]
+
+#[derive(Clone, Debug)]
 pub struct EvmState{
     memory: Memory,
     stack: Stack<32>,
@@ -143,23 +146,26 @@ impl MachineComponent for Evm<'_> {
     fn apply_change(&mut self, rec: Self::Record) {
         let MachineRecord {pc, stack, mem, constraints} = rec;
         let mut state = self.states.val.clone();
-        state.stack.apply_change(stack);
-        state.memory.apply_change(mem);
-        state.pc = pc.1;
+        state.stack_apply(stack);
+        state.mem_apply(mem);
+        
         
         if constraints.is_none() {
             // Assert this because pgm counter always increments during execution except
             // for when a jump occurs. And jumps should always result in a constraint
             assert!(pc.1 == (pc.0 + 1));
-           
+            state.pc = pc.1;
             self.states.update_mut(state);
         } else {
             let constraint = constraints.unwrap();
+            let mut does_jump_state = state.clone();
+            does_jump_state.pc = pc.1;
+            state.pc += 1;
             // Insert possible machine states such that:
             // - The leftmost path of the tree represents the straightline execution of the program with no branches.
             // - At each branch, we insert the condition of the branching and its negation
             self.states.push(state.clone(), constraint.not());
-            self.states.push(state, constraint);
+            self.states.push(does_jump_state, constraint);
   
         }   
     }
@@ -195,5 +201,13 @@ impl MachineState for EvmState {
 
     fn mem_read(&self, idx: Index) -> BitVec<32> {
         self.memory.inner.get(&idx).cloned().unwrap_or_default().clone()
+    }
+
+    fn stack_apply(&mut self, stack_rec: StackChange) {
+        self.stack.apply_change(stack_rec);
+    }
+
+    fn mem_apply(&mut self, mem_rec: MemChange) {
+        self.memory.apply_change(mem_rec);
     }
 }

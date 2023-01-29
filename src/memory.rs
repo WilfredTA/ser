@@ -4,7 +4,8 @@ use crate::MachineComponent;
 use crate::smt::BitVec;
 use crate::record::{Index, MemChange};
 
-#[derive(Clone)]
+
+#[derive(Clone, Debug)]
 pub struct Memory {
     pub(crate) inner: HashMap<Index, BitVec<32>>
 }
