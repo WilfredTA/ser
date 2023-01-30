@@ -4,7 +4,7 @@ Symbolic EVM in Rust
 
 
 ## Introduction
-Ser's design is informed by lessons I learned from a previous attempt to build a highly abstract & generalized symbolic execution framework parameterized over instruction sets (we called it symbolic-stack-machines). Unlike symbolic-stack-machines, Ser only supports a single architecture: the EVM.
+Ser's design is informed by lessons I learned from a previous attempt to build a highly abstract & generalized symbolic execution framework parameterized over instruction sets (we called it [symbolic-stack-machines](https://github.com/WilfredTA/symbolic-stack-machines)). Unlike symbolic-stack-machines, Ser only supports a single architecture: the EVM.
  
 
 Ser is designed with two concepts in mind:

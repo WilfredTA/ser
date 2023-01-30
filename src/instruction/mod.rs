@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ruint::aliases::U256;
 use z3_ext::ast::{BV, Ast, Bool};
 
-use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Machine, MachineState, EvmState}};
+use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Machine, MachineState, EvmState, Evm}};
 
 use super::smt::*;
 
@@ -158,14 +158,14 @@ pub enum Instruction {
 
 
 
-pub trait MachineInstruction {
-    fn exec(&self, mach: impl AsRef<dyn Machine<Record = MachineRecord, State = EvmState>>) -> MachineRecord;
+pub trait MachineInstruction<'ctx, const SZ: u32> {
+    fn exec(&self, mach: &Evm<'ctx>) -> MachineRecord<SZ>;
 }
 
 
-impl<'ctx> MachineInstruction for Instruction {
-    fn exec(&self, mach: impl AsRef<dyn Machine<Record = MachineRecord, State = EvmState>>) -> MachineRecord {
-        let mach = mach.as_ref();
+impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
+    fn exec(&self, mach: &Evm<'ctx>) -> MachineRecord<32> {
+       
         let mach = mach.state();
         match self {
             Instruction::Stop => todo!(),

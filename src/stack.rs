@@ -35,9 +35,21 @@ impl<const SZ: u32> Stack<SZ> {
 
 
 impl<const SZ: u32>  MachineComponent for Stack<SZ> {
-    type Record = StackChange;
+    type Record = StackChange<SZ>;
 
     fn apply_change(&mut self, rec: Self::Record) {
-        todo!()
+        let StackChange {
+            pop_qty,            push_qty,            ops,
+        
+        } = rec;
+
+        ops.iter().for_each(|op| {
+            match op {
+                crate::record::StackOp::Push(v) => self.push(v.clone()),
+                crate::record::StackOp::Pop => {
+                    self.pop();
+                },
+            }
+        });
     }
 }

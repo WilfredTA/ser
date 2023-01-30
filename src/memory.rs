@@ -5,7 +5,7 @@ use crate::smt::BitVec;
 use crate::record::{Index, MemChange};
 
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Memory {
     pub(crate) inner: HashMap<Index, BitVec<32>>
 }
