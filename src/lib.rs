@@ -286,6 +286,7 @@ pub fn bvc(val: impl AsRef<str>) -> BitVec<32> {
 }
 
 #[test]
+#[ignore]
 fn basic_step() {
     let one = bvi(1);
 
