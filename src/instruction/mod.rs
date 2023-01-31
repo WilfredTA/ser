@@ -159,14 +159,14 @@ pub enum Instruction {
 
 
 pub trait MachineInstruction<'ctx, const SZ: u32> {
-    fn exec(&self, mach: &Evm<'ctx>) -> MachineRecord<SZ>;
+    fn exec(&self, mach: &EvmState) -> MachineRecord<SZ>;
 }
 
 
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
-    fn exec(&self, mach: &Evm<'ctx>) -> MachineRecord<32> {
+    fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
        
-        let mach = mach.state();
+     
         match self {
             Instruction::Stop => todo!(),
             Instruction::Add => {
