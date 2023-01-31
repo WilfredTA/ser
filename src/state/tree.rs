@@ -160,6 +160,35 @@ impl<'ctx> StateTree<'ctx> {
         }
 
     }
+
+    pub fn insert_right_helper(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Option<Uuid> {
+        let tree = tree.into();
+        let inserted_id = tree.id.id;
+
+        if self.id.id == id {
+            self.right = Some(Box::new(tree));
+            Some(inserted_id)
+        } else {
+            let left_result = if let Some(left) = &mut self.left {
+                left.insert_right_helper(tree.clone(), id)
+            } else {
+                None
+            };
+
+            if let Some(res) = left_result {
+                return Some(res)
+            }
+
+            let right_result = if let Some(right) = &mut self.right {
+                right.insert_right_helper(tree, id)
+            } else {
+                None
+            };
+
+            right_result
+        }
+
+    }
     pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
         match self.insert_left_helper(tree, id) {
             Some(i) => i,
@@ -180,20 +209,10 @@ impl<'ctx> StateTree<'ctx> {
     }
 
     pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
-        let tree = tree.into();
-        let inserted_id = tree.id.id;
-
-        if self.id.id == id {
-            let mut insert = tree;
-            insert.id.parent = Some(id);
-            self.right = Some(Box::new(insert));
-        } else if let Some(left) = &mut self.left {
-            left.insert_right_of(tree, id);
-        } else if let Some(right) = &mut self.right {
-            right.insert_right_of(tree, id);
+        match self.insert_right_helper(tree, id) {
+            Some(i) => i,
+            None => panic!("Could not find id {} in the state tree", id)
         }
-
-        inserted_id
 
     }
 
