@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
-use crate::MachineComponent;
 use crate::smt::BitVec;
 use crate::record::{Index, MemChange};
+use crate::traits::MachineComponent;
 
 
 #[derive(Clone, Debug, Default)]

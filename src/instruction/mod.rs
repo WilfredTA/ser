@@ -3,7 +3,9 @@ use std::collections::HashMap;
 use ruint::aliases::U256;
 use z3_ext::ast::{BV, Ast, Bool};
 
-use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Machine, MachineState, EvmState, Evm}};
+use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Evm}};
+use crate::state::evm::EvmState;
+use crate::traits::*;
 
 use super::smt::*;
 
@@ -158,10 +160,6 @@ pub enum Instruction {
 
 
 
-pub trait MachineInstruction<'ctx, const SZ: u32> {
-    fn exec(&self, mach: &EvmState) -> MachineRecord<SZ>;
-}
-
 
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
@@ -188,7 +186,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_change),
                     mem: Default::default(),
                     pc: (pc, pc + 1),
-                    constraints: None
+                    constraints: None,
+                    halt: false,
                 }
             },
             Instruction::Mul => todo!(),
@@ -249,7 +248,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_rec),
                     pc: (pc, pc + 1),
                     mem: Default::default(),
-                    constraints: None
+                    constraints: None,
+                    halt: false,
                 }
             },
             Instruction::MLoad => todo!(),
@@ -280,7 +280,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_rec),
                     pc: (mach.pc(), jump_dest_concrete),
                     constraints: Some(cond),
-                    mem: Default::default()
+                    mem: Default::default(),
+                    halt: false,
                 }
             },
             Instruction::Pc => todo!(),
@@ -377,10 +378,23 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_change),
                     mem: Default::default(),
                     pc: (pc, pc + 1),
-                    constraints: None
+                    constraints: None,
+                    halt: false,
                 }
             },
             Instruction::IsZero => todo!(),
         }
     }
+}
+
+pub fn ipush(v: BitVec<32>) -> Instruction {
+    Instruction::Push(v)
+}
+
+pub fn iadd() -> Instruction {
+    Instruction::Add
+}
+
+pub fn jumpi() -> Instruction {
+    Instruction::JumpI
 }

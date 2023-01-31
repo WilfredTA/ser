@@ -10,7 +10,8 @@ pub struct MachineRecord<const StackItemSZ: u32> {
     pub mem: Option<MemChange>,
     pub stack: Option<StackChange<StackItemSZ>>,
     pub pc: (usize, usize),
-    pub constraints: Option<Bool<'static>>
+    pub constraints: Option<Bool<'static>>,
+    pub halt: bool
 }
 
 pub type Index = U256;

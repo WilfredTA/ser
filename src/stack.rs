@@ -1,10 +1,12 @@
-use crate::{MachineComponent, record::StackChange};
+use crate::{record::StackChange};
 
 use super::smt::*;
 use z3_ext::{
     ast::{Ast, BV},
     Config,
 };
+use crate::traits::MachineComponent;
+
 #[derive(Default, Debug, Clone)]
 pub struct Stack<const SZ: u32> {
     stack: Vec<BitVec<SZ>>,
@@ -43,13 +45,16 @@ impl<const SZ: u32>  MachineComponent for Stack<SZ> {
         
         } = rec;
 
+        let mut new_stack = self.stack.clone();
+
         ops.iter().for_each(|op| {
             match op {
-                crate::record::StackOp::Push(v) => self.push(v.clone()),
+                crate::record::StackOp::Push(v) => new_stack.push(v.clone()),
                 crate::record::StackOp::Pop => {
-                    self.pop();
+                    new_stack.pop();
                 },
             }
         });
+        self.stack = new_stack;
     }
 }

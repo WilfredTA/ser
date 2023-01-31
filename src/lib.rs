@@ -7,6 +7,8 @@ pub mod record;
 pub mod machine;
 pub mod stack;
 pub mod memory;
+pub mod state;
+pub mod traits;
 use instruction::*;
 use smt::*;
 use stack::*;
@@ -17,11 +19,6 @@ use z3_ext::{
 
 use std::cell::{Ref, RefCell};
 
-
-pub trait MachineComponent {
-    type Record;
-    fn apply_change(&mut self, rec: Self::Record);
-}
 
 
 #[derive(Debug, Clone)]
