@@ -1,3 +1,4 @@
+use std::borrow::BorrowMut;
 use super::evm::*;
 use crate::{
     z3_ext::ast::Bool,
@@ -130,20 +131,52 @@ impl<'ctx> StateTree<'ctx> {
         }
     }
 
-    pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
+
+    pub fn insert_left_helper(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Option<Uuid> {
         let tree = tree.into();
         let inserted_id = tree.id.id;
 
         if self.id.id == id {
-            let mut insert = tree;
-            insert.id.parent = Some(self.id.id);
-            self.left = Some(Box::new(insert));
-        } else if let Some(left) = &mut self.left {
-            left.insert_left_of(tree, id);
-        } else if let Some(right) = &mut self.right {
-          right.insert_left_of(tree, id);
+            self.left = Some(Box::new(tree));
+            Some(inserted_id)
+        } else {
+           let left_result = if let Some(left) = &mut self.left {
+               left.insert_left_helper(tree.clone(), id)
+            } else {
+               None
+           };
+
+            if let Some(res) = left_result {
+                return Some(res)
+            }
+
+            let right_result = if let Some(right) = &mut self.right {
+                right.insert_left_helper(tree, id)
+            } else {
+                None
+            };
+
+           right_result
         }
-        inserted_id
+
+    }
+    pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
+        match self.insert_left_helper(tree, id) {
+            Some(i) => i,
+            None => panic!("Could not find id {} in the state tree", id)
+        }
+        // if self.id.id == id {
+        //     let mut insert = tree;
+        //     insert.id.parent = Some(self.id.id);
+        //     self.left = Some(Box::new(insert));
+        //     return inserted_id;
+        // } else if let Some(left) = &mut self.left {
+        //    return left.insert_left_of(tree, id);
+        //
+        // } else if let Some(right) = &mut self.right {
+        //   return right.insert_left_of(tree, id);
+        // }
+        // eprintln!("ALL NODES: {:?}", self.inorder());
     }
 
     pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {

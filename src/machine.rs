@@ -148,11 +148,13 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         let mut leaves: Vec<ExecBranch> = vec![];
         // let mut right_branch_ptr = curr_id.id();
          //let mut left_branch_ptr = curr_id.id();
-       let mut id_ptr = curr_id.id();
+
         loop {
             let curr_state = trace.pop();
+            let mut temp_id_ptr = jump_ctx.pop();
+            eprintln!("Executing node with id {:?}", temp_id_ptr);
             if let Some(curr_state) = curr_state {
-                let mut temp_id_ptr = jump_ctx.pop().unwrap();
+                let temp_id_ptr = temp_id_ptr.unwrap();
 
                 let (curr_state, curr_cond) = curr_state;
                 let mut curr_cond = curr_cond.clone();
@@ -165,13 +167,16 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
 
                     eprintln!("Inserting to the right of {:?}", temp_id_ptr);
                     let branch_right_id = state_tree.insert_right_of(branch.clone(), temp_id_ptr);
+                    eprintln!("Inserted {} to the right of {}", branch_right_id, temp_id_ptr);
+
+
                     jump_ctx.push(branch_right_id);
-
-
-
                     if branch_state.can_continue() {
+
                         trace.push(branch);
+
                     } else {
+                        eprintln!("NODE {} CANNOT CONTINUE", branch_right_id);
                         leaves.push(branch);
                     }
                 }
@@ -180,10 +185,12 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
                 let branch = (nxt_state.clone(), curr_cond.clone());
                 eprintln!("Inserting to the left of {:?}", temp_id_ptr);
 
+
                 let branch_left_id = state_tree.insert_left_of(branch.clone(), temp_id_ptr);
-                jump_ctx.push(branch_left_id);
+                eprintln!("Inserted {} to the left of {}", branch_left_id, temp_id_ptr);
                 if nxt_state.can_continue() {
                     trace.push(branch);
+                    jump_ctx.push(branch_left_id);
                 } else {
                     leaves.push(branch);
                 }

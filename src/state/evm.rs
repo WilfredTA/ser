@@ -42,7 +42,7 @@ impl MachineComponent for EvmState {
 impl<'ctx> EvmState {
 
     pub fn can_continue(&self) -> bool {
-        self.pc <= self.pgm.len() - 1
+        self.pc < self.pgm.len()
     }
     pub fn curr_instruction(&self) -> Instruction {
         self.pgm.get(self.pc).cloned().unwrap()

@@ -1,3 +1,4 @@
 /target
 .z3-trace
-*.log
+*.txt.log*
+.idea/*
