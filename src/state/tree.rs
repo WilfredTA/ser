@@ -270,17 +270,16 @@ impl<'ctx> StateTree<'ctx> {
                 left: None,
                 right: None,
             }));
-        } else {
-            if let Some(left) = &mut self.left {
-                let final_constraint = if let Some(cond) = &self.path_condition {
-                    Bool::and(ctx(), &[&cond, &constraint])
-                } else {
-                    constraint
-                };
-                // This ensures that the constraints of each node is a conjunction of all of its ancestors constraints + the new branch condition.
-                let new_constraint = final_constraint;
-                left.push(val, new_constraint);
-            }
+        } else if let Some(left) = &mut self.left {
+            let final_constraint = if let Some(cond) = &self.path_condition {
+                Bool::and(ctx(), &[&cond, &constraint])
+            } else {
+                constraint
+            };
+            // This ensures that the constraints of each node is a conjunction of all of its ancestors constraints + the new branch condition.
+            let new_constraint = final_constraint;
+            left.push(val, new_constraint);
+
         }
     }
 }

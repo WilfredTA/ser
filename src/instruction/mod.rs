@@ -306,7 +306,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let stack = mach.stack();
                 let a = stack.peek().unwrap();
                 let b = stack.peek_nth(1).unwrap();
-                let and = a.as_ref().bitand(b.as_ref()).into()
+                let and = a.as_ref().bitand(b.as_ref()).into();
 
                 let ops = vec![pop(), pop(), push(and)];
 
