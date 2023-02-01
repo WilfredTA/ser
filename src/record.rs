@@ -37,3 +37,39 @@ pub struct StackChange<const SZ: u32> {
     pub push_qty: u64,
     pub ops: Vec<StackOp<SZ>>,
 }
+
+impl<const SZ: u32> StackChange<SZ> {
+    pub fn push(val: BitVec<SZ>) -> Self {
+        Self {
+            pop_qty: 0,
+            push_qty: 1,
+            ops: vec![StackOp::Push(val)]
+        }
+    }
+
+    pub fn with_ops(ops: Vec<StackOp<SZ>>) -> Self {
+        let mut pop_qty = 0;
+        let mut push_qty = 0;
+
+        ops.iter().for_each(|op| {
+            match op {
+                StackOp::Push(_) => push_qty += 1,
+                StackOp::Pop => pop_qty += 1
+            }
+        });
+
+        Self {
+            push_qty,
+            pop_qty,
+            ops
+        }
+    }
+}
+
+pub fn push<const SZ: u32>(val: BitVec<SZ>) -> StackOp<SZ> {
+    StackOp::Push(val)
+}
+
+pub fn pop<const SZ: u32>() -> StackOp<SZ> {
+    StackOp::Pop
+}

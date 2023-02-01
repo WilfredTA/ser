@@ -1,7 +1,6 @@
 #![allow(unused)]
 // #![feature(adt_const_params)]
 extern crate z3 as z3_ext;
-
 pub mod instruction;
 pub mod machine;
 pub mod memory;

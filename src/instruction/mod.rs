@@ -5,12 +5,8 @@ use z3_ext::ast::{Ast, Bool, BV};
 
 use crate::state::evm::EvmState;
 use crate::traits::*;
-use crate::{
-    machine::Evm,
-    memory::Memory,
-    record::{Index, MachineRecord, StackChange, StackOp},
-    stack::Stack,
-};
+use crate::{bvi, machine::Evm, memory::Memory, record::{Index, MachineRecord, StackChange, StackOp}, stack::Stack};
+use crate::record::{pop, push};
 
 use super::smt::*;
 
@@ -190,15 +186,80 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false,
                 }
             }
-            Instruction::Mul => todo!(),
-            Instruction::Sub => todo!(),
-            Instruction::Div => todo!(),
+            Instruction::Mul => {
+                let stack = mach.stack();
+                let mul1 = stack.peek().unwrap();
+                let mul2 = stack.peek_nth(1).unwrap();
+                let product: BitVec<32> = mul1.as_ref().bvmul( mul2.as_ref()).into();
+                let ops = vec![pop(), pop(), push(product)];
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
+            Instruction::Sub => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let difference: BitVec<32> = a.as_ref().bvsub( b.as_ref()).into();
+                let ops = vec![pop(), pop(), push(difference)];
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
+            Instruction::Div => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let quot: BitVec<32> = a.as_ref().bvudiv( b.as_ref()).into();
+                let ops = vec![pop(), pop(), push(quot)];
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
             Instruction::SDiv => todo!(),
             Instruction::SMod => todo!(),
             Instruction::Mod => todo!(),
             Instruction::AddMod => todo!(),
             Instruction::MulMod => todo!(),
-            Instruction::Exp => todo!(),
+            Instruction::Exp => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let power = stack.peek_nth(1).unwrap();
+                let mut power_conc = power.as_ref().as_u64().unwrap();
+                let mut exp: BitVec<32> = if power_conc == 0 {
+                    bvi(1)
+                } else if power_conc == 1 {
+                    a.clone()
+                } else {
+                    let mut temp_exp = a.clone();
+                    while (power_conc)  > 1 {
+                        temp_exp = temp_exp.as_ref().bvmul(a.as_ref()).into();
+                        power_conc -= 1;
+                    }
+                    temp_exp
+                };
+
+                let ops = vec![pop(), pop(), push(exp)];
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
             Instruction::Lt => todo!(),
             Instruction::Gt => todo!(),
             Instruction::Slt => todo!(),
@@ -261,9 +322,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::JumpI => {
                 let jump_dest = mach.stack().peek().unwrap();
                 let cond = mach.stack().peek_nth(1).unwrap();
-                eprintln!("JUMP DEST: {:?}", jump_dest);
                 let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
-                eprintln!("JUMP DEST CONC: {:?}", jump_dest_concrete);
 
                 let bv_zero = BV::from_u64(ctx(), 0, 256);
                 let cond = cond.as_ref()._eq(&bv_zero);
@@ -283,7 +342,21 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false,
                 }
             }
-            Instruction::Pc => todo!(),
+            Instruction::Pc => {
+                let pc = BitVec::new_literal(mach.pc() as u64);
+               let stack_rec = StackChange {
+                   pop_qty: 0,
+                   push_qty: 1,
+                   ops: vec![StackOp::Push(pc)]
+               };
+                MachineRecord {
+                    stack: Some(stack_rec),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    mem: Default::default(),
+                    halt: false
+                }
+            },
             Instruction::MSize => todo!(),
             Instruction::Gas => todo!(),
             Instruction::JumpDest => todo!(),
