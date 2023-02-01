@@ -10,16 +10,12 @@ about = "Symbolic EVM in Rust"
 once_cell = "1.16.0"
 ruint = { version = "1.7.0", features = ["primitive-types"] }
 uuid = { version = "1.2.2", features = ["v4"] }
+
+
+
+
+[target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 z3 = {version = "0.11.2", features = ["static-link-z3"]}
 
-
-
-#
-#[target.'cfg(target_arch = "aarch64-apple-darwin")'.dependencies]
-#z3 = {version = "0.11.2", features = ["static-link-z3"]}
-#
-#[target.'cfg(target_arch = "x86_64-apple-darwin")'.dependencies]
-#z3 = {version = "0.11.2", features = ["static-link-z3"]}
-#
-#[target.'cfg(target_arch = "x86_64")'.dependencies]
-#z3 = "0.11.2"
+[target.'cfg(target_arch = "x86_64")'.dependencies]
+z3 = "0.11.2"
