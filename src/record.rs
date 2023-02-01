@@ -5,9 +5,9 @@ use ruint::Uint;
 use z3_ext::ast::Bool;
 
 #[derive(Clone, Debug)]
-pub struct MachineRecord<const StackItemSZ: u32> {
+pub struct MachineRecord<const STACK_ITEM_SZ: u32> {
     pub mem: Option<MemChange>,
-    pub stack: Option<StackChange<StackItemSZ>>,
+    pub stack: Option<StackChange<STACK_ITEM_SZ>>,
     pub pc: (usize, usize),
     pub constraints: Option<Bool<'static>>,
     pub halt: bool,
@@ -43,7 +43,7 @@ impl<const SZ: u32> StackChange<SZ> {
         Self {
             pop_qty: 0,
             push_qty: 1,
-            ops: vec![StackOp::Push(val)]
+            ops: vec![StackOp::Push(val)],
         }
     }
 
@@ -51,17 +51,15 @@ impl<const SZ: u32> StackChange<SZ> {
         let mut pop_qty = 0;
         let mut push_qty = 0;
 
-        ops.iter().for_each(|op| {
-            match op {
-                StackOp::Push(_) => push_qty += 1,
-                StackOp::Pop => pop_qty += 1
-            }
+        ops.iter().for_each(|op| match op {
+            StackOp::Push(_) => push_qty += 1,
+            StackOp::Pop => pop_qty += 1,
         });
 
         Self {
             push_qty,
             pop_qty,
-            ops
+            ops,
         }
     }
 }

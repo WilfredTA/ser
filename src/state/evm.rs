@@ -28,7 +28,7 @@ impl MachineComponent for EvmState {
             stack,
             mem,
             constraints,
-        } = rec.clone();
+        } = rec;
         if let Some(mem) = mem {
             self.memory.apply_change(mem);
         }
@@ -75,13 +75,7 @@ impl<'ctx> EvmState {
             new_state.mem_apply(mem_rec);
         }
 
-        if constraints.is_none() {
-            assert_eq!(pc.1, (pc.0 + 1));
-            new_state.pc = pc.1;
-
-            ((new_state, vec![]), None)
-        } else {
-            let constraint = constraints.unwrap();
+        if let Some(constraint) = constraints {
             let mut does_jump_state = new_state.clone();
             does_jump_state.pc = pc.1;
             new_state.pc += 1;
@@ -89,6 +83,11 @@ impl<'ctx> EvmState {
                 (new_state, vec![constraint.not()]),
                 Some((does_jump_state, vec![constraint])),
             )
+        } else {
+            assert_eq!(pc.1, (pc.0 + 1));
+            new_state.pc = pc.1;
+
+            ((new_state, vec![]), None)
         }
     }
 }

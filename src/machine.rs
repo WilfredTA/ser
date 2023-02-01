@@ -23,6 +23,11 @@ pub struct ExecutionSummary {
     reachable: Vec<EvmState>,
 }
 
+impl Default for ExecutionSummary {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 impl ExecutionSummary {
     pub fn new() -> Self {
         Self { reachable: vec![] }
@@ -38,7 +43,7 @@ impl ExecutionSummary {
         Self { reachable: states }
     }
 
-    pub fn falsify<'ctx>(&self, assertion: Bool<'ctx>) -> bool {
+    pub fn falsify(&self, assertion: Bool) -> bool {
         todo!()
     }
 
@@ -170,7 +175,7 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
 
         let mut jump_ctx = vec![curr_id.id()];
         let mut state_tree = self.states.clone();
-        let mut trace: Vec<ExecBranch> = vec![(curr_state.clone(), vec![])];
+        let mut trace: Vec<ExecBranch> = vec![(curr_state, vec![])];
         let mut leaves: Vec<ExecBranch> = vec![];
 
         loop {
@@ -277,12 +282,7 @@ impl MachineState<32> for EvmState {
     }
 
     fn mem_read(&self, idx: Index) -> BitVec<32> {
-        self.memory
-            .inner
-            .get(&idx)
-            .cloned()
-            .unwrap_or_default()
-            .clone()
+        self.memory.inner.get(&idx).cloned().unwrap_or_default()
     }
 
     fn stack_apply(&mut self, stack_rec: StackChange<32>) {
@@ -309,7 +309,7 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
     // 1. Stack is [2 100 50]  <-- Reachable
     // 2.Stack is [2 50]       <-- Unreachable
     let pgm = vec![
-        ipush(two.clone()),
+        ipush(two),
         ipush(one),
         ipush(a),
         iadd(),

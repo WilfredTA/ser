@@ -36,7 +36,7 @@ impl NodeId {
     pub fn new_with_parent(pid: &Uuid) -> Self {
         Self {
             id: Uuid::new_v4(),
-            parent: Some(pid.clone()),
+            parent: Some(*pid),
         }
     }
 }
@@ -76,7 +76,7 @@ impl<'ctx> From<(EvmState, Option<Bool<'ctx>>)> for StateTree<'ctx> {
 
 impl<'ctx> From<(EvmState, Vec<Bool<'ctx>>)> for StateTree<'ctx> {
     fn from(t: (EvmState, Vec<Bool<'ctx>>)) -> Self {
-        let conds = t.1.iter().map(|t| t).collect::<Vec<_>>();
+        let conds = t.1.iter().collect::<Vec<_>>();
         let cond = if conds.is_empty() {
             None
         } else {
@@ -151,13 +151,11 @@ impl<'ctx> StateTree<'ctx> {
                 return Some(res);
             }
 
-            let right_result = if let Some(right) = &mut self.right {
+            if let Some(right) = &mut self.right {
                 right.insert_left_helper(tree, id)
             } else {
                 None
-            };
-
-            right_result
+            }
         }
     }
 
@@ -183,19 +181,17 @@ impl<'ctx> StateTree<'ctx> {
                 return Some(res);
             }
 
-            let right_result = if let Some(right) = &mut self.right {
+            if let Some(right) = &mut self.right {
                 right.insert_right_helper(tree, id)
             } else {
                 None
-            };
-
-            right_result
+            }
         }
     }
     pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
         match self.insert_left_helper(tree, id) {
             Some(i) => i,
-            None => panic!("Could not find id {} in the state tree", id),
+            None => panic!("Could not find id {id} in the state tree"),
         }
         // if self.id.id == id {
         //     let mut insert = tree;
@@ -214,7 +210,7 @@ impl<'ctx> StateTree<'ctx> {
     pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
         match self.insert_right_helper(tree, id) {
             Some(i) => i,
-            None => panic!("Could not find id {} in the state tree", id),
+            None => panic!("Could not find id {id} in the state tree"),
         }
     }
 
@@ -272,14 +268,13 @@ impl<'ctx> StateTree<'ctx> {
             }));
         } else if let Some(left) = &mut self.left {
             let final_constraint = if let Some(cond) = &self.path_condition {
-                Bool::and(ctx(), &[&cond, &constraint])
+                Bool::and(ctx(), &[cond, &constraint])
             } else {
                 constraint
             };
             // This ensures that the constraints of each node is a conjunction of all of its ancestors constraints + the new branch condition.
             let new_constraint = final_constraint;
             left.push(val, new_constraint);
-
         }
     }
 }

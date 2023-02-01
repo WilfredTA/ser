@@ -55,5 +55,3 @@ impl<const SZ: u32> MachineComponent for Stack<SZ> {
         self.stack = new_stack;
     }
 }
-
-
