@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::ops::{BitAnd, BitOr, BitXor};
 
 use ruint::aliases::U256;
 use z3_ext::ast::{Ast, Bool, BV};
@@ -260,15 +261,111 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false
                 }
             },
-            Instruction::Lt => todo!(),
-            Instruction::Gt => todo!(),
+            Instruction::Lt => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let lt: BitVec<32> = a.as_ref().bvult(b.as_ref()).ite(
+                    bvi(1).as_ref(),
+                    bvi(0).as_ref()
+                ).into();
+
+                let ops = vec![pop(), pop(), push(lt)];
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
+            Instruction::Gt => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let lt: BitVec<32> = a.as_ref().bvugt(b.as_ref()).ite(
+                    bvi(1).as_ref(),
+                    bvi(0).as_ref()
+                ).into();
+
+                let ops = vec![pop(), pop(), push(lt)];
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            } ,
             Instruction::Slt => todo!(),
             Instruction::Sgt => todo!(),
             Instruction::Eq => todo!(),
-            Instruction::And => todo!(),
-            Instruction::Or => todo!(),
-            Instruction::Xor => todo!(),
-            Instruction::Not => todo!(),
+            Instruction::And =>  {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let and = a.as_ref().bitand(b.as_ref()).into()
+
+                let ops = vec![pop(), pop(), push(and)];
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
+            Instruction::Or => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let and = a.as_ref().bitor(b.as_ref()).into();
+
+                let ops = vec![pop(), pop(), push(and)];
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
+            Instruction::Xor => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+                let b = stack.peek_nth(1).unwrap();
+                let and = a.as_ref().bitxor(b.as_ref()).into();
+
+                let ops = vec![pop(), pop(), push(and)];
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
+            Instruction::Not => {
+                let stack = mach.stack();
+                let a = stack.peek().unwrap();
+
+                let neg = a.as_ref().bvneg().into();
+
+                let ops = vec![pop(), pop(), push(neg)];
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(ops)),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false
+                }
+            },
             Instruction::Byte => todo!(),
             Instruction::Shl => todo!(),
             Instruction::Shr => todo!(),
