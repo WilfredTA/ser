@@ -172,13 +172,11 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         let mut state_tree = self.states.clone();
         let mut trace: Vec<ExecBranch> = vec![(curr_state.clone(), vec![])];
         let mut leaves: Vec<ExecBranch> = vec![];
-        // let mut right_branch_ptr = curr_id.id();
-        //let mut left_branch_ptr = curr_id.id();
 
         loop {
             let curr_state = trace.pop();
             let mut temp_id_ptr = jump_ctx.pop();
-            eprintln!("Executing node with id {:?}", temp_id_ptr);
+            //eprintln!("Executing node with id {:?}", temp_id_ptr);
             if let Some(curr_state) = curr_state {
                 let temp_id_ptr = temp_id_ptr.unwrap();
 
@@ -191,28 +189,22 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
                     branch_cond_pre.extend(branch_cond);
                     let branch = (branch_state.clone(), branch_cond_pre.clone());
 
-                    eprintln!("Inserting to the right of {:?}", temp_id_ptr);
                     let branch_right_id = state_tree.insert_right_of(branch.clone(), temp_id_ptr);
-                    eprintln!(
-                        "Inserted {} to the right of {}",
-                        branch_right_id, temp_id_ptr
-                    );
 
                     jump_ctx.push(branch_right_id);
                     if branch_state.can_continue() {
                         trace.push(branch);
                     } else {
-                        eprintln!("NODE {} CANNOT CONTINUE", branch_right_id);
                         leaves.push(branch);
                     }
                 }
                 let (nxt_state, nxt_constraints) = next_state;
                 curr_cond.extend(nxt_constraints);
                 let branch = (nxt_state.clone(), curr_cond.clone());
-                eprintln!("Inserting to the left of {:?}", temp_id_ptr);
+                // eprintln!("Inserting to the left of {:?}", temp_id_ptr);
 
                 let branch_left_id = state_tree.insert_left_of(branch.clone(), temp_id_ptr);
-                eprintln!("Inserted {} to the left of {}", branch_left_id, temp_id_ptr);
+                // eprintln!("Inserted {} to the left of {}", branch_left_id, temp_id_ptr);
                 if nxt_state.can_continue() {
                     trace.push(branch);
                     jump_ctx.push(branch_left_id);
@@ -309,23 +301,13 @@ pub struct EvmExecutor<'ctx> {
 #[test]
 fn machine_returns_one_exec_for_non_branching_pgm() {
     let one = bvi(1);
-
     let two = bvi(2);
-    //let three = BitVec::new_literal(3);
     let four = bvi(4);
     let a = bvc("a");
 
-    /**
-     *
-     * 2 pc 0
-     * 1 2 pc 1
-     * a 1 2 pc 2
-     * (a + 1) 2 pc 3
-     * 7 (a + 1) 2 pc 4
-     *
-     */
-    // Two reachable states; one where 50 (0x32) is on top of stack, and one where 100 (0x64)
-    // is on top of stack
+    // Two states (one reachable & one unreachable):
+    // 1. Stack is [2 100 50]  <-- Reachable
+    // 2.Stack is [2 50]       <-- Unreachable
     let pgm = vec![
         ipush(two.clone()),
         ipush(one),
