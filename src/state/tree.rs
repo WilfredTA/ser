@@ -1,23 +1,19 @@
-use std::borrow::BorrowMut;
 use super::evm::*;
-use crate::{
-    z3_ext::ast::Bool,
-    z3_ext::ast::Ast,
-    ctx
-};
+use crate::{ctx, z3_ext::ast::Ast, z3_ext::ast::Bool};
+use std::borrow::BorrowMut;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NodeId {
     id: Uuid,
-    parent: Option<Uuid>
+    parent: Option<Uuid>,
 }
 
 impl Default for NodeId {
-     fn default() -> Self {
+    fn default() -> Self {
         Self {
             id: Uuid::new_v4(),
-            parent: None
+            parent: None,
         }
     }
 }
@@ -26,7 +22,7 @@ impl NodeId {
     pub fn new() -> Self {
         Self {
             id: Uuid::new_v4(),
-            parent: None
+            parent: None,
         }
     }
 
@@ -40,7 +36,7 @@ impl NodeId {
     pub fn new_with_parent(pid: &Uuid) -> Self {
         Self {
             id: Uuid::new_v4(),
-            parent: Some(pid.clone())
+            parent: Some(pid.clone()),
         }
     }
 }
@@ -61,7 +57,7 @@ impl<'ctx> From<(EvmState, Bool<'ctx>)> for StateTree<'ctx> {
             val: t.0,
             path_condition: Some(t.1),
             left: None,
-            right: None
+            right: None,
         }
     }
 }
@@ -73,7 +69,7 @@ impl<'ctx> From<(EvmState, Option<Bool<'ctx>>)> for StateTree<'ctx> {
             val: t.0,
             path_condition: t.1,
             left: None,
-            right: None
+            right: None,
         }
     }
 }
@@ -91,7 +87,7 @@ impl<'ctx> From<(EvmState, Vec<Bool<'ctx>>)> for StateTree<'ctx> {
             val: t.0,
             path_condition: cond,
             left: None,
-            right: None
+            right: None,
         }
     }
 }
@@ -104,7 +100,11 @@ impl<'ctx> StateTree<'ctx> {
     }
 
     pub fn inorder(&self) -> Vec<(NodeId, EvmState, Option<Bool<'ctx>>)> {
-        let mut items = vec![(self.id.clone(), self.val.clone(), self.path_condition.clone())];
+        let mut items = vec![(
+            self.id.clone(),
+            self.val.clone(),
+            self.path_condition.clone(),
+        )];
 
         if let Some(left) = &self.left {
             let left_tree_inorder = left.inorder();
@@ -117,9 +117,7 @@ impl<'ctx> StateTree<'ctx> {
         items
     }
 
-
     pub fn insert(&mut self, tree: impl Into<StateTree<'ctx>>) {
-
         if let Some(left) = &mut self.left {
             left.insert(tree);
         } else if let Some(right) = &mut self.right {
@@ -131,8 +129,11 @@ impl<'ctx> StateTree<'ctx> {
         }
     }
 
-
-    pub fn insert_left_helper(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Option<Uuid> {
+    pub fn insert_left_helper(
+        &mut self,
+        tree: impl Into<StateTree<'ctx>>,
+        id: Uuid,
+    ) -> Option<Uuid> {
         let tree = tree.into();
         let inserted_id = tree.id.id;
 
@@ -140,14 +141,14 @@ impl<'ctx> StateTree<'ctx> {
             self.left = Some(Box::new(tree));
             Some(inserted_id)
         } else {
-           let left_result = if let Some(left) = &mut self.left {
-               left.insert_left_helper(tree.clone(), id)
+            let left_result = if let Some(left) = &mut self.left {
+                left.insert_left_helper(tree.clone(), id)
             } else {
-               None
-           };
+                None
+            };
 
             if let Some(res) = left_result {
-                return Some(res)
+                return Some(res);
             }
 
             let right_result = if let Some(right) = &mut self.right {
@@ -156,12 +157,15 @@ impl<'ctx> StateTree<'ctx> {
                 None
             };
 
-           right_result
+            right_result
         }
-
     }
 
-    pub fn insert_right_helper(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Option<Uuid> {
+    pub fn insert_right_helper(
+        &mut self,
+        tree: impl Into<StateTree<'ctx>>,
+        id: Uuid,
+    ) -> Option<Uuid> {
         let tree = tree.into();
         let inserted_id = tree.id.id;
 
@@ -176,7 +180,7 @@ impl<'ctx> StateTree<'ctx> {
             };
 
             if let Some(res) = left_result {
-                return Some(res)
+                return Some(res);
             }
 
             let right_result = if let Some(right) = &mut self.right {
@@ -187,12 +191,11 @@ impl<'ctx> StateTree<'ctx> {
 
             right_result
         }
-
     }
     pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
         match self.insert_left_helper(tree, id) {
             Some(i) => i,
-            None => panic!("Could not find id {} in the state tree", id)
+            None => panic!("Could not find id {} in the state tree", id),
         }
         // if self.id.id == id {
         //     let mut insert = tree;
@@ -211,9 +214,8 @@ impl<'ctx> StateTree<'ctx> {
     pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
         match self.insert_right_helper(tree, id) {
             Some(i) => i,
-            None => panic!("Could not find id {} in the state tree", id)
+            None => panic!("Could not find id {} in the state tree", id),
         }
-
     }
 
     pub fn leaves(&self) -> Vec<StateTree> {
@@ -230,7 +232,6 @@ impl<'ctx> StateTree<'ctx> {
                 leaves.extend(left.leaves());
             }
         }
-
 
         if let Some(right) = &self.right {
             if right.right.is_none() && right.left.is_none() {
@@ -253,7 +254,7 @@ impl<'ctx> StateTree<'ctx> {
                 val,
                 path_condition: Some(constraint),
                 left: None,
-                right: None
+                right: None,
             }));
         } else if let Some(left) = &mut self.left {
             left.push_branch(val, constraint)
@@ -267,7 +268,7 @@ impl<'ctx> StateTree<'ctx> {
                 val,
                 path_condition: Some(constraint),
                 left: None,
-                right: None
+                right: None,
             }));
         } else {
             if let Some(left) = &mut self.left {
@@ -281,18 +282,17 @@ impl<'ctx> StateTree<'ctx> {
                 left.push(val, new_constraint);
             }
         }
-
     }
 }
 
 #[derive(Clone, Debug, Default)]
 pub struct StateTreeIterator<'ctx> {
     curr_state: Option<(EvmState, Option<Bool<'ctx>>)>,
-    nexts: Vec<StateTree<'ctx>>
+    nexts: Vec<StateTree<'ctx>>,
 }
 
 impl<'ctx> Iterator for StateTreeIterator<'ctx> {
-    type Item = (EvmState,Option<Bool<'ctx>>);
+    type Item = (EvmState, Option<Bool<'ctx>>);
 
     fn next(&mut self) -> Option<Self::Item> {
         let curr = &self.curr_state;
@@ -322,7 +322,7 @@ impl<'ctx> IntoIterator for StateTree<'ctx> {
         let (left, right) = (self.left, self.right);
         let mut iterator = StateTreeIterator {
             curr_state: Some((self.val, self.path_condition)),
-            nexts: vec![]
+            nexts: vec![],
         };
 
         if let Some(left) = left {
@@ -333,7 +333,5 @@ impl<'ctx> IntoIterator for StateTree<'ctx> {
             iterator.nexts.push(*right);
         }
         iterator
-
-
     }
 }

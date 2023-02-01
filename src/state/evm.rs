@@ -1,33 +1,34 @@
-use z3_ext::ast::Bool;
-use crate::{
-    memory::Memory,
-    stack::Stack,
-    instruction::Instruction,
-    traits::{
-        MachineInstruction, MachineComponent
-    },
-    record::*,
-};
 use crate::machine::ExecBranch;
 use crate::state::tree::NodeId;
 use crate::traits::MachineState;
+use crate::{
+    instruction::Instruction,
+    memory::Memory,
+    record::*,
+    stack::Stack,
+    traits::{MachineComponent, MachineInstruction},
+};
+use z3_ext::ast::Bool;
 
 #[derive(Clone, Debug, Default)]
-pub struct EvmState{
+pub struct EvmState {
     pub memory: Memory,
     pub stack: Stack<32>,
     pub pc: usize,
     pub pgm: Vec<Instruction>,
-
-
 }
 
 impl MachineComponent for EvmState {
     type Record = MachineRecord<32>;
 
-
     fn apply_change(&mut self, rec: Self::Record) {
-        let MachineRecord {halt, pc, stack, mem, constraints} = rec.clone();
+        let MachineRecord {
+            halt,
+            pc,
+            stack,
+            mem,
+            constraints,
+        } = rec.clone();
         if let Some(mem) = mem {
             self.memory.apply_change(mem);
         }
@@ -40,7 +41,6 @@ impl MachineComponent for EvmState {
 }
 
 impl<'ctx> EvmState {
-
     pub fn can_continue(&self) -> bool {
         self.pc < self.pgm.len()
     }
@@ -55,8 +55,17 @@ impl<'ctx> EvmState {
         self.state_transition(change)
     }
     // Generates a set of next possible EvmStates given the state change record
-    pub fn state_transition(&self, rec: MachineRecord<32>) -> (ExecBranch<'ctx>, Option<ExecBranch<'ctx>>) {
-        let MachineRecord {halt , pc, stack, mem, constraints} = rec;
+    pub fn state_transition(
+        &self,
+        rec: MachineRecord<32>,
+    ) -> (ExecBranch<'ctx>, Option<ExecBranch<'ctx>>) {
+        let MachineRecord {
+            halt,
+            pc,
+            stack,
+            mem,
+            constraints,
+        } = rec;
         let mut new_state = self.clone();
         if let Some(stack_rec) = stack {
             new_state.stack_apply(stack_rec);
@@ -76,8 +85,10 @@ impl<'ctx> EvmState {
             let mut does_jump_state = new_state.clone();
             does_jump_state.pc = pc.1;
             new_state.pc += 1;
-            ((new_state, vec![constraint.not()]), Some((does_jump_state, vec![constraint])))
+            (
+                (new_state, vec![constraint.not()]),
+                Some((does_jump_state, vec![constraint])),
+            )
         }
-
     }
 }

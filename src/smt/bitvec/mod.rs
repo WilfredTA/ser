@@ -17,13 +17,15 @@ pub struct BitVec<const SZ: u32> {
 impl Default for BitVec<32> {
     fn default() -> Self {
         let ctx = ctx();
-        Self { inner: BVType::Z3(BV::from_u64(ctx, 0, 32)), typ: SolverType::Z3 }
+        Self {
+            inner: BVType::Z3(BV::from_u64(ctx, 0, 32)),
+            typ: SolverType::Z3,
+        }
     }
 }
 
 impl<const SZ: u32> PartialEq for BitVec<SZ> {
     fn eq(&self, other: &Self) -> bool {
-        
         match &self.inner {
             BVType::Z3(bv) => {
                 //eprintln!("LHS BV EQ: {:#?}", bv);
@@ -39,11 +41,11 @@ impl<const SZ: u32> PartialEq for BitVec<SZ> {
                         } else {
                             false
                         }
-                    },
-                    _ => false
+                    }
+                    _ => false,
                 }
-            },
-            _ => false
+            }
+            _ => false,
         }
     }
 }

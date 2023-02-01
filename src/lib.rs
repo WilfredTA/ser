@@ -2,11 +2,11 @@
 // #![feature(adt_const_params)]
 extern crate z3 as z3_ext;
 pub mod instruction;
-pub mod smt;
-pub mod record;
 pub mod machine;
-pub mod stack;
 pub mod memory;
+pub mod record;
+pub mod smt;
+pub mod stack;
 pub mod state;
 pub mod traits;
 use instruction::*;
@@ -18,8 +18,6 @@ use z3_ext::{
 };
 
 use std::cell::{Ref, RefCell};
-
-
 
 #[derive(Debug, Clone)]
 pub struct MachineState {
@@ -82,7 +80,7 @@ impl<'ctx> MachineState {
     //         if top == val {
     //             Some()
     //         }
-    //     } 
+    //     }
     // }
 
     fn sub(&mut self) -> Option<MachineStateDiff<'ctx>> {
@@ -134,11 +132,10 @@ impl<'ctx> From<Vec<Instruction>> for MachineState {
 
 pub struct Executor<'ctx> {
     left: Option<Machine<'ctx>>,
-    right: Option<Machine<'ctx>>
+    right: Option<Machine<'ctx>>,
 }
 
 impl<'ctx> Executor<'ctx> {
-
     pub fn run_right(&mut self) -> Option<Machine<'ctx>> {
         if let Some(right) = &self.right {
             Some(right.clone().run())
@@ -155,15 +152,10 @@ impl<'ctx> Executor<'ctx> {
         }
     }
     pub fn run_once(mut self) -> Self {
-       let left = self.run_left();
-       let right = self.run_right();
-        Self {
-            left,
-            right
-        }
+        let left = self.run_left();
+        let right = self.run_right();
+        Self { left, right }
     }
-
-
 }
 #[derive(Debug, Clone)]
 pub struct Machine<'ctx> {
@@ -274,7 +266,6 @@ impl<'ctx> Machine<'ctx> {
     }
 }
 
-
 pub fn bvi(val: impl Into<i32>) -> BitVec<32> {
     BitVec::new_literal(val.into() as u64)
 }
@@ -293,13 +284,13 @@ fn basic_step() {
     let a = bvc("a");
 
     /**
-     * 
+     *
      * 2 pc 0
      * 1 2 pc 1
      * a 1 2 pc 2
      * (a + 1) 2 pc 3
      * 7 (a + 1) 2 pc 4
-     * 
+     *
      */
     let pgm = vec![
         Instruction::Push(two.clone()),
@@ -309,7 +300,6 @@ fn basic_step() {
         Instruction::Push(bvi(7)),
         // Instruction::Sub,
         // Instruction::Push(four),
-    
         Instruction::JumpI,
         Instruction::Push(bvi(24)),
     ];

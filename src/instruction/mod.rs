@@ -1,11 +1,16 @@
 use std::collections::HashMap;
 
 use ruint::aliases::U256;
-use z3_ext::ast::{BV, Ast, Bool};
+use z3_ext::ast::{Ast, Bool, BV};
 
-use crate::{stack::Stack, record::{Index, MachineRecord, StackOp, StackChange}, memory::Memory, machine::{Evm}};
 use crate::state::evm::EvmState;
 use crate::traits::*;
+use crate::{
+    machine::Evm,
+    memory::Memory,
+    record::{Index, MachineRecord, StackChange, StackOp},
+    stack::Stack,
+};
 
 use super::smt::*;
 
@@ -157,14 +162,8 @@ pub enum Instruction {
     // Assert(BitVec<32>),
 }
 
-
-
-
-
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
-       
-     
         match self {
             Instruction::Stop => todo!(),
             Instruction::Add => {
@@ -174,8 +173,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 let stack_op_1 = StackOp::Pop;
                 let stack_op_2 = StackOp::Pop;
-                
-                let stack_op_3 = StackOp::Push(stack_top.as_ref().bvadd(stack_top2.as_ref()).into());
+
+                let stack_op_3 =
+                    StackOp::Push(stack_top.as_ref().bvadd(stack_top2.as_ref()).into());
                 let pc = mach.pc();
                 let stack_change = StackChange {
                     pop_qty: 2,
@@ -189,7 +189,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::Mul => todo!(),
             Instruction::Sub => todo!(),
             Instruction::Div => todo!(),
@@ -251,7 +251,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::MLoad => todo!(),
             Instruction::MStore => todo!(),
             Instruction::MStore8 => todo!(),
@@ -264,16 +264,15 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 eprintln!("JUMP DEST: {:?}", jump_dest);
                 let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
                 eprintln!("JUMP DEST CONC: {:?}", jump_dest_concrete);
-                
-        
+
                 let bv_zero = BV::from_u64(ctx(), 0, 256);
                 let cond = cond.as_ref()._eq(&bv_zero);
                 let cond = Bool::not(&cond);
-        
+
                 let stack_rec = StackChange {
                     pop_qty: 2,
                     push_qty: 0,
-                    ops: vec![StackOp::Pop, StackOp::Pop]
+                    ops: vec![StackOp::Pop, StackOp::Pop],
                 };
 
                 MachineRecord {
@@ -283,7 +282,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     mem: Default::default(),
                     halt: false,
                 }
-            },
+            }
             Instruction::Pc => todo!(),
             Instruction::MSize => todo!(),
             Instruction::Gas => todo!(),
@@ -381,7 +380,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::IsZero => todo!(),
         }
     }
