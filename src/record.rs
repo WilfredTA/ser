@@ -68,6 +68,4 @@ pub fn push<const SZ: u32>(val: BitVec<SZ>) -> StackOp<SZ> {
     StackOp::Push(val)
 }
 
-pub fn pop<const SZ: u32>() -> StackOp<SZ> {
-    StackOp::Pop
-}
+

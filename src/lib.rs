@@ -16,7 +16,8 @@ use z3_ext::{
     ast::{Ast, Bool, Int, BV},
     AstKind, Config, Context, Model, SatResult, Solver,
 };
-pub fn bvi(val: impl Into<i32>) -> BitVec<32> {
+
+pub fn bvi<const SZ: u32>(val: impl Into<i32>) -> BitVec<SZ> {
     BitVec::new_literal(val.into() as u64)
 }
 pub fn bvc(val: impl AsRef<str>) -> BitVec<32> {

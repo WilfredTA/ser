@@ -27,11 +27,9 @@ pub trait Machine<const STACK_ITEM_SZ: u32>: MachineComponent {
     // All possible final states
     fn exec(&mut self) -> Vec<ExecBranch>;
     fn pgm(&self) -> Vec<Instruction>;
-    fn instruction(&self) -> Instruction;
     fn state(&self) -> Self::State;
     fn state_ref(&self) -> &Self::State;
     fn state_ref_mut(&mut self) -> &mut Self::State;
-    fn path_conditions(&self) -> Vec<Bool>;
 }
 
 pub trait MachineInstruction<'ctx, const SZ: u32> {

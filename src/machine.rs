@@ -7,7 +7,7 @@ use z3_ext::{
     AstKind, Config, Context, Model, SatResult, Solver,
 };
 
-use crate::instruction::{iadd, ipush, Instruction};
+use crate::instruction::*;
 use crate::memory::*;
 use crate::state::evm::EvmState;
 use crate::state::tree::{NodeId, StateTree};
@@ -225,12 +225,9 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
     }
 
     fn pgm(&self) -> Vec<Instruction> {
-        todo!()
+        self.pgm.clone()
     }
 
-    fn instruction(&self) -> Instruction {
-        todo!()
-    }
 
     fn state(&self) -> Self::State {
         self.states
@@ -242,15 +239,11 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
     }
 
     fn state_ref(&self) -> &Self::State {
-        todo!()
+        &self.states.val
     }
 
     fn state_ref_mut(&mut self) -> &mut Self::State {
-        todo!()
-    }
-
-    fn path_conditions(&self) -> Vec<Bool<'ctx>> {
-        todo!()
+        &mut self.states.val
     }
 }
 
@@ -302,21 +295,20 @@ pub struct EvmExecutor<'ctx> {
 fn machine_returns_one_exec_for_non_branching_pgm() {
     let one = bvi(1);
     let two = bvi(2);
-    let four = bvi(4);
     let a = bvc("a");
 
     // Two states (one reachable & one unreachable):
     // 1. Stack is [2 100 50]  <-- Reachable
     // 2.Stack is [2 50]       <-- Unreachable
     let pgm = vec![
-        ipush(two),
-        ipush(one),
-        ipush(a),
-        iadd(),
-        ipush(bvi(7)),
+        push32(two),
+        push32(one),
+        push32(a),
+        add(),
+        push32(bvi(7)),
         Instruction::JumpI,
         Instruction::Push(bvi(100)),
-        ipush(bvi(50)),
+        push32(bvi(50)),
     ];
 
     let mut evm = Evm::new(pgm);
