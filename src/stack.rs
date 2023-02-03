@@ -7,30 +7,49 @@ use z3_ext::{
     Config,
 };
 
-#[derive(Default, Debug, Clone)]
+#[derive( Debug, Clone)]
 pub struct Stack<const SZ: u32> {
-    stack: Vec<BitVec<SZ>>,
+    stack: [BitVec<SZ>; 1025],
+    top: usize,
 }
 
+const INIT_STACK_VAL: Option<BitVec<32>> = None;
+impl<const SZ: u32> Default for Stack<SZ> {
+    fn default() -> Self {
+        let stack =[(); 1025].map(|_| BitVec::default());
+        Self {
+            stack,
+            top: 1
+        }
+    }
+}
 impl<const SZ: u32> Stack<SZ> {
     pub fn push(&mut self, val: BitVec<SZ>) {
-        self.stack.push(val);
+
+        self.stack[self.top] = val;
+        self.top += 1;
     }
 
     pub fn pop(&mut self) -> BitVec<SZ> {
-        self.stack.pop().unwrap()
+         if self.top <= 0 {
+             panic!("Stack top must be positive integer. Instead it is {} with state {:?}", self.top, self.stack.get(self.top));
+         } else {
+             self.top -= 1;
+            self.stack.get(self.top).cloned().unwrap()
+
+         }
     }
 
     pub fn peek(&self) -> Option<&BitVec<SZ>> {
-        self.stack.last()
+        self.stack.get(self.top - 1)
     }
 
     pub fn size(&self) -> usize {
-        self.stack.len()
+        self.top + 1
     }
 
     pub fn peek_nth(&self, n: usize) -> Option<&BitVec<SZ>> {
-        self.stack.get(n)
+        self.stack.get(n - 1)
     }
 }
 
@@ -44,14 +63,19 @@ impl<const SZ: u32> MachineComponent for Stack<SZ> {
             ops,
         } = rec;
 
-        let mut new_stack = self.stack.clone();
+        let mut new_stack = self.clone();
 
-        ops.iter().for_each(|op| match op {
-            crate::record::StackOp::Push(v) => new_stack.push(v.clone()),
-            crate::record::StackOp::Pop => {
-                new_stack.pop();
+        ops.iter().for_each(|op| {
+            eprintln!("OP: {:?}", op);
+            match op {
+
+                crate::record::StackOp::Push(v) => new_stack.push(v.clone()),
+                crate::record::StackOp::Pop => {
+                    new_stack.pop();
+                }
             }
         });
-        self.stack = new_stack;
+        self.stack = new_stack.stack;
+        self.top = new_stack.top;
     }
 }

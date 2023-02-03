@@ -8,17 +8,20 @@ pub enum BVType {
     Z3(BV<'static>),
 }
 
+
+pub type SymByte = BitVec<8>;
+
 #[derive(Debug, Clone)]
 pub struct BitVec<const SZ: u32> {
     pub inner: BVType,
     typ: super::SolverType,
 }
 
-impl Default for BitVec<32> {
+impl<const SZ: u32> Default for BitVec<SZ> {
     fn default() -> Self {
         let ctx = ctx();
         Self {
-            inner: BVType::Z3(BV::from_u64(ctx, 0, 32)),
+            inner: BVType::Z3(BV::from_u64(ctx, 0, SZ)),
             typ: SolverType::Z3,
         }
     }
