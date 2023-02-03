@@ -21,7 +21,7 @@ pub trait MachineState<const STACK_ITEM_SZ: u32> {
     fn mem_apply(&mut self, mem_rec: MemChange);
 }
 
-pub trait Machine<const STACK_ITEM_SZ: u32>: MachineComponent {
+pub trait Machine<const STACK_ITEM_SZ: u32> {
     type State: MachineState<STACK_ITEM_SZ>;
 
     // All possible final states

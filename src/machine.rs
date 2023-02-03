@@ -90,15 +90,6 @@ impl<'ctx> Evm<'ctx> {
     // }
 }
 
-impl MachineComponent for Evm<'_> {
-    type Record = MachineRecord<32>;
-
-    fn apply_change(&mut self, rec: Self::Record) {
-        todo!()
-        // self.states = Evm::state_transition(self.states.clone(), rec);
-    }
-}
-
 impl<'ctx> Evm<'ctx> {
     pub fn new(pgm: Vec<Instruction>) -> Self {
         let evm_state = EvmState {
@@ -155,15 +146,6 @@ impl<'ctx> Evm<'ctx> {
                 }
             })
             .collect::<Vec<_>>()
-    }
-
-    pub fn exec_mut(&mut self) {
-        let mut execution_trace = vec![];
-        for inst in self.pgm.clone() {
-            let record = inst.exec(&self.state());
-            self.apply_change(record.clone());
-            execution_trace.push(record);
-        }
     }
 }
 

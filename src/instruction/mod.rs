@@ -390,7 +390,10 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Balance => {
                 let stack = mach.stack();
                 let addr = stack.peek().unwrap();
-                let bal = balance().apply(&[addr.as_ref(), random_bv_arg().as_ref()]).as_bv().unwrap();
+                let bal = balance()
+                    .apply(&[addr.as_ref(), random_bv_arg().as_ref()])
+                    .as_bv()
+                    .unwrap();
                 let stack_diff = StackChange::with_ops(vec![pop(), push(bal.into())]);
 
                 MachineRecord {
@@ -513,7 +516,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::Coinbase => {
                 let stack = mach.stack();
                 let coin_base = coinbase().apply(&[]).as_bv().unwrap();
@@ -526,7 +529,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            } ,
+            }
             Instruction::Timestamp => {
                 let stack = mach.stack();
                 let timestmp = timestamp().apply(&[]).as_bv().unwrap();
@@ -539,7 +542,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::Number => todo!(),
             Instruction::Difficulty => {
                 let stack = mach.stack();
@@ -553,37 +556,33 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::GasLimit => {
-                {
-                    let stack = mach.stack();
-                    let gas_limit = gas_lim().apply(&[]).as_bv().unwrap();
-                    let stack_diff = StackChange::with_ops(vec![pop(), push(gas_limit.into())]);
+                let stack = mach.stack();
+                let gas_limit = gas_lim().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(gas_limit.into())]);
 
-                    MachineRecord {
-                        stack: Some(stack_diff),
-                        mem: Default::default(),
-                        pc: (mach.pc(), mach.pc() + 1),
-                        constraints: None,
-                        halt: false,
-                    }
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
                 }
-            },
+            }
             Instruction::ChainId => {
-                {
-                    let stack = mach.stack();
-                    let cid = chain_id().apply(&[]).as_bv().unwrap();
-                    let stack_diff = StackChange::with_ops(vec![pop(), push(cid.into())]);
+                let stack = mach.stack();
+                let cid = chain_id().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(cid.into())]);
 
-                    MachineRecord {
-                        stack: Some(stack_diff),
-                        mem: Default::default(),
-                        pc: (mach.pc(), mach.pc() + 1),
-                        constraints: None,
-                        halt: false,
-                    }
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
                 }
-            },
+            }
             Instruction::SelfBalance => todo!(),
             Instruction::BaseFee => todo!(),
             Instruction::Pop => {

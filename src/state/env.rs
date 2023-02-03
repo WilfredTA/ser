@@ -5,7 +5,6 @@ use z3_ext::Sort;
 
 use crate::smt::ctx;
 
-
 /**
     Note: Some of these functions in EVM have no arguments.
     The reason they are passed an argument here is because a zero argument function is
@@ -53,7 +52,6 @@ pub fn address<'ctx>() -> FuncDecl<'ctx> {
     let ctx = ctx();
     FuncDecl::new(ctx, "address", &[], &Sort::bitvector(ctx, 256))
 }
-
 
 // Takes random bitvec as argument so that gas is not treated as a constant function.
 pub fn gas<'ctx>() -> FuncDecl<'ctx> {
