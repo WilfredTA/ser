@@ -31,3 +31,9 @@ Ser is intended to be used primarily as a *library* (as opposed to a standalone 
 Ser also differs from most symbolic EVM tools in that state transitions in the EVM are implemented as independent objects which can later be committed, rewound, or logged in a structured way. This has multiple practical benefits for other tools that may use Ser behind the scenes. 
 
 The tradeoff is that this approach - as it is currently implemented - uses more memory than if the execution of each instruction and its effect on the machine state were coupled together.
+
+
+
+### Acknowledgements
+
+Special thanks to [Arnur Sabet](https://github.com/arnursabet) for his contributions to an earlier prototype of this software.
