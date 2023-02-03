@@ -1,19 +1,17 @@
-use std::fmt::{Debug, Formatter};
 use crate::record::StackChange;
+use std::fmt::{Debug, Formatter};
 
 use super::smt::*;
 use crate::traits::MachineComponent;
+use smallvec::SmallVec;
 use z3_ext::{
     ast::{Ast, BV},
     Config,
 };
-use smallvec::SmallVec;
 #[derive(Default, Debug, Clone)]
 pub struct Stack<const SZ: u32> {
     stack: SmallVec<[BitVec<SZ>; 1024]>,
 }
-
-
 
 impl<const SZ: u32> Stack<SZ> {
     pub fn push(&mut self, val: BitVec<SZ>) {

@@ -330,10 +330,6 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
         );
 
         assert_eq!(sat_branches.len(), 1);
-
     }
-    eprintln!("STATES > {:#?}",evm.states);
-
-
-
+    eprintln!("STATES > {:#?}", evm.states);
 }
