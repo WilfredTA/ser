@@ -315,19 +315,19 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
 
     {
         let sat_branches = evm.exec_check();
-        // assert!(
-        //     sat_branches.first().is_some()
-        //         && sat_branches
-        //             .first()
-        //             .unwrap()
-        //             .0
-        //              .0
-        //             .stack()
-        //             .peek_nth(1)
-        //             .cloned()
-        //             .unwrap()
-        //             == bvi(100)
-        // );
+        assert!(
+            sat_branches.first().is_some()
+                && sat_branches
+                    .first()
+                    .unwrap()
+                    .0
+                     .0
+                    .stack()
+                    .peek_nth(1)
+                    .cloned()
+                    .unwrap()
+                    == bvi(100)
+        );
 
         assert_eq!(sat_branches.len(), 1);
 
