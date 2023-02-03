@@ -20,7 +20,7 @@ impl<const SZ: u32> Default for BitVec<SZ> {
     fn default() -> Self {
         let ctx = ctx();
         Self {
-            inner: BVType::Z3(BV::from_u64(ctx, 0, SZ)),
+            inner: BVType::Z3(BV::from_u64(ctx, 0, SZ * 8)),
             typ: SolverType::Z3,
         }
     }

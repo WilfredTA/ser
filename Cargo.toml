@@ -18,6 +18,7 @@ revm = { version = "2.3", default-features = false, features = [
     "optional_eip3607"
 ] }
 hex = "0.4.3"
+smallvec = "1.10.0"
 
 
 
