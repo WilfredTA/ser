@@ -17,6 +17,13 @@ use crate::{
 };
 
 use super::smt::*;
+use rand::Rng;
+
+pub fn random_bv_arg() -> BitVec<32> {
+    let mut rng = rand::thread_rng();
+    let rand_num: u64 = rng.gen();
+    BitVec::new_literal(rand_num)
+}
 
 #[derive(Clone, Debug)]
 pub enum Instruction {
@@ -383,7 +390,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Balance => {
                 let stack = mach.stack();
                 let addr = stack.peek().unwrap();
-                let bal = balance().apply(&[addr.as_ref()]).as_bv().unwrap();
+                let bal = balance().apply(&[addr.as_ref(), random_bv_arg().as_ref()]).as_bv().unwrap();
                 let stack_diff = StackChange::with_ops(vec![pop(), push(bal.into())]);
 
                 MachineRecord {
@@ -494,13 +501,89 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::ReturnDataSize => todo!(),
             Instruction::ReturnDataCopy => todo!(),
             Instruction::ExtCodeHash => todo!(),
-            Instruction::BlockHash => todo!(),
-            Instruction::Coinbase => todo!(),
-            Instruction::Timestamp => todo!(),
+            Instruction::BlockHash => {
+                let stack = mach.stack();
+                let blk_hash = block_hash().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(blk_hash.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            },
+            Instruction::Coinbase => {
+                let stack = mach.stack();
+                let coin_base = coinbase().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(coin_base.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            } ,
+            Instruction::Timestamp => {
+                let stack = mach.stack();
+                let timestmp = timestamp().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(timestmp.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            },
             Instruction::Number => todo!(),
-            Instruction::Difficulty => todo!(),
-            Instruction::GasLimit => todo!(),
-            Instruction::ChainId => todo!(),
+            Instruction::Difficulty => {
+                let stack = mach.stack();
+                let difficulty = difficulty().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(difficulty.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            },
+            Instruction::GasLimit => {
+                {
+                    let stack = mach.stack();
+                    let gas_limit = gas_lim().apply(&[]).as_bv().unwrap();
+                    let stack_diff = StackChange::with_ops(vec![pop(), push(gas_limit.into())]);
+
+                    MachineRecord {
+                        stack: Some(stack_diff),
+                        mem: Default::default(),
+                        pc: (mach.pc(), mach.pc() + 1),
+                        constraints: None,
+                        halt: false,
+                    }
+                }
+            },
+            Instruction::ChainId => {
+                {
+                    let stack = mach.stack();
+                    let cid = chain_id().apply(&[]).as_bv().unwrap();
+                    let stack_diff = StackChange::with_ops(vec![pop(), push(cid.into())]);
+
+                    MachineRecord {
+                        stack: Some(stack_diff),
+                        mem: Default::default(),
+                        pc: (mach.pc(), mach.pc() + 1),
+                        constraints: None,
+                        halt: false,
+                    }
+                }
+            },
             Instruction::SelfBalance => todo!(),
             Instruction::BaseFee => todo!(),
             Instruction::Pop => {

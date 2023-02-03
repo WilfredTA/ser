@@ -5,6 +5,16 @@ use z3_ext::Sort;
 
 use crate::smt::ctx;
 
+
+/**
+    Note: Some of these functions in EVM have no arguments.
+    The reason they are passed an argument here is because a zero argument function is
+    mathematically considered a constant. Yet, the EVM equivalent functions are *not* constants;
+    rather, they depend on the state of the machine at the time of execution. By providing a function domain,
+    we can generate unique values. One example is 'GAS'. While GAS takes zero arguments from the stack,
+    it is parameterized over the state of the machine. We must therefore provide an argument to the function
+    in z3 in order to ensure that GAS is not treated as a constant.
+*/
 pub fn chain_id<'ctx>() -> FuncDecl<'ctx> {
     let ctx = ctx();
     FuncDecl::new(ctx, "chainid", &[], &Sort::bitvector(ctx, 256))
@@ -44,6 +54,8 @@ pub fn address<'ctx>() -> FuncDecl<'ctx> {
     FuncDecl::new(ctx, "address", &[], &Sort::bitvector(ctx, 256))
 }
 
+
+// Takes random bitvec as argument so that gas is not treated as a constant function.
 pub fn gas<'ctx>() -> FuncDecl<'ctx> {
     let ctx = ctx();
     FuncDecl::new(
@@ -112,12 +124,15 @@ pub fn ext_code_hash<'ctx>() -> FuncDecl<'ctx> {
         &Sort::bitvector(ctx, 256),
     )
 }
+
+// We add an extra argument here because the balance of an address is not necessarily the same during
+// every step of a contract's execution.
 pub fn balance<'ctx>() -> FuncDecl<'ctx> {
     let ctx = ctx();
     FuncDecl::new(
         ctx,
         "balance",
-        &[&Sort::bitvector(ctx, 256)],
+        &[&Sort::bitvector(ctx, 256), &Sort::bitvector(ctx, 256)],
         &Sort::bitvector(ctx, 256),
     )
 }

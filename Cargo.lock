@@ -532,6 +532,7 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "once_cell",
+ "rand",
  "ruint",
  "smallvec",
  "uuid",

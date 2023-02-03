@@ -12,6 +12,7 @@ ruint = { version = "1.7.0", features = ["primitive-types"] }
 uuid = { version = "1.2.2", features = ["v4"] }
 hex = "0.4.3"
 smallvec = "1.10.0"
+rand = "0.8.5"
 
 
 
