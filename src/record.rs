@@ -67,5 +67,3 @@ impl<const SZ: u32> StackChange<SZ> {
 pub fn push<const SZ: u32>(val: BitVec<SZ>) -> StackOp<SZ> {
     StackOp::Push(val)
 }
-
-

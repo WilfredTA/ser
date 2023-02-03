@@ -4,7 +4,8 @@ use std::ops::{BitAnd, BitOr, BitXor};
 use ruint::aliases::U256;
 use z3_ext::ast::{Ast, Bool, BV};
 
-use crate::record::{push};
+use crate::record::push;
+use crate::state::env::*;
 use crate::state::evm::EvmState;
 use crate::traits::*;
 use crate::{
@@ -379,17 +380,116 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Shr => todo!(),
             Instruction::Sha3 => todo!(),
             Instruction::Address => todo!(),
-            Instruction::Balance => todo!(),
-            Instruction::Origin => todo!(),
-            Instruction::Caller => todo!(),
-            Instruction::CallValue => todo!(),
-            Instruction::CallDataLoad => todo!(),
-            Instruction::CallDataSize => todo!(),
+            Instruction::Balance => {
+                let stack = mach.stack();
+                let addr = stack.peek().unwrap();
+                let bal = balance().apply(&[addr.as_ref()]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(bal.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
+            Instruction::Origin => {
+                let stack = mach.stack();
+                let orig = origin().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(orig.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
+            Instruction::Caller => {
+                let stack = mach.stack();
+                let caller = caller().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(caller.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
+            Instruction::CallValue => {
+                let stack = mach.stack();
+                let call_val = call_value().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(call_val.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
+            Instruction::CallDataLoad => {
+                let stack = mach.stack();
+                let offset = stack.peek().unwrap();
+                let call_data = call_data_load().apply(&[offset.as_ref()]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(call_data.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
+            Instruction::CallDataSize => {
+                let stack = mach.stack();
+                let call_data_sz = call_data_size().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(call_data_sz.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
             Instruction::CallDataCopy => todo!(),
             Instruction::CodeSize => todo!(),
             Instruction::CodeCopy => todo!(),
-            Instruction::GasPrice => todo!(),
-            Instruction::ExtCodeSize => todo!(),
+            Instruction::GasPrice => {
+                let stack = mach.stack();
+                let price = gas_price().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(price.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
+            Instruction::ExtCodeSize => {
+                let stack = mach.stack();
+                let addr = stack.peek().unwrap();
+                let ext_code_sz = call_value().apply(&[addr.as_ref()]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(ext_code_sz.into())]);
+
+                MachineRecord {
+                    stack: Some(stack_diff),
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            }
             Instruction::ExtCodeCopy => todo!(),
             Instruction::ReturnDataSize => todo!(),
             Instruction::ReturnDataCopy => todo!(),
@@ -475,9 +575,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push2(bv) => {
                 let new_bv = bv.as_ref().zero_ext(30).into();
 
@@ -488,9 +588,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push3(bv) => {
                 let new_bv = bv.as_ref().zero_ext(29).into();
 
@@ -501,9 +601,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push4(bv) => {
                 let new_bv = bv.as_ref().zero_ext(28).into();
 
@@ -514,9 +614,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push5(bv) => {
                 let new_bv = bv.as_ref().zero_ext(27).into();
 
@@ -527,9 +627,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push6(bv) => {
                 let new_bv = bv.as_ref().zero_ext(26).into();
 
@@ -540,9 +640,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push7(bv) => {
                 let new_bv = bv.as_ref().zero_ext(25).into();
 
@@ -553,9 +653,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push8(bv) => {
                 let new_bv = bv.as_ref().zero_ext(24).into();
 
@@ -566,9 +666,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push9(bv) => {
                 let new_bv = bv.as_ref().zero_ext(23).into();
 
@@ -579,9 +679,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push10(bv) => {
                 let new_bv = bv.as_ref().zero_ext(22).into();
 
@@ -592,9 +692,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push11(bv) => {
                 let new_bv = bv.as_ref().zero_ext(21).into();
 
@@ -605,9 +705,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push12(bv) => {
                 let new_bv = bv.as_ref().zero_ext(20).into();
 
@@ -618,9 +718,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push13(bv) => {
                 let new_bv = bv.as_ref().zero_ext(19).into();
 
@@ -631,9 +731,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push14(bv) => {
                 let new_bv = bv.as_ref().zero_ext(18).into();
 
@@ -644,9 +744,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push15(bv) => {
                 let new_bv = bv.as_ref().zero_ext(17).into();
 
@@ -657,9 +757,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push16(bv) => {
                 let new_bv = bv.as_ref().zero_ext(16).into();
 
@@ -670,9 +770,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push17(bv) => {
                 let new_bv = bv.as_ref().zero_ext(15).into();
 
@@ -683,9 +783,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push18(bv) => {
                 let new_bv = bv.as_ref().zero_ext(14).into();
 
@@ -696,9 +796,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push19(bv) => {
                 let new_bv = bv.as_ref().zero_ext(13).into();
 
@@ -709,9 +809,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push20(bv) => {
                 let new_bv = bv.as_ref().zero_ext(12).into();
 
@@ -722,9 +822,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push21(bv) => {
                 let new_bv = bv.as_ref().zero_ext(11).into();
 
@@ -735,9 +835,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push22(bv) => {
                 let new_bv = bv.as_ref().zero_ext(10).into();
 
@@ -748,9 +848,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push23(bv) => {
                 let new_bv = bv.as_ref().zero_ext(9).into();
 
@@ -761,9 +861,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push24(bv) => {
                 let new_bv = bv.as_ref().zero_ext(8).into();
 
@@ -774,9 +874,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push25(bv) => {
                 let new_bv = bv.as_ref().zero_ext(7).into();
 
@@ -787,9 +887,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push26(bv) => {
                 let new_bv = bv.as_ref().zero_ext(6).into();
 
@@ -800,9 +900,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push27(bv) => {
                 let new_bv = bv.as_ref().zero_ext(5).into();
 
@@ -813,9 +913,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push28(bv) => {
                 let new_bv = bv.as_ref().zero_ext(4).into();
 
@@ -826,9 +926,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push29(bv) => {
                 let new_bv = bv.as_ref().zero_ext(3).into();
 
@@ -839,9 +939,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push30(bv) => {
                 let new_bv = bv.as_ref().zero_ext(2).into();
 
@@ -852,9 +952,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push31(bv) => {
                 let new_bv = bv.as_ref().zero_ext(1).into();
 
@@ -865,9 +965,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Push32(bv) => {
                 let ops = vec![push(bv.clone())];
 
@@ -876,9 +976,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup1 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -888,9 +988,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup2 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -900,9 +1000,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup3 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -912,9 +1012,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup4 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -924,9 +1024,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup5 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -936,9 +1036,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup6 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -948,9 +1048,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup7 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -960,9 +1060,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup8 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -972,9 +1072,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup9 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -984,9 +1084,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup10 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -996,9 +1096,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup11 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -1008,9 +1108,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup12 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -1020,9 +1120,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup13 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -1032,9 +1132,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup14 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -1044,9 +1144,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup15 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -1056,9 +1156,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Dup16 => {
                 let item = mach.stack().peek_nth(2).unwrap();
                 let ops = vec![push(item.clone())];
@@ -1068,9 +1168,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
             Instruction::Swap1 => todo!(),
             Instruction::Swap2 => todo!(),
             Instruction::Swap3 => todo!(),
@@ -1119,10 +1219,11 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::IsZero => {
                 let top = mach.stack().peek().unwrap();
-                let is_zero: BitVec<32> = top.as_ref()._eq(bvi::<32>(0).as_ref()).ite(
-                    bvi::<32>(1).as_ref(),
-                    bvi::<32>(0).as_ref()
-                ).into();
+                let is_zero: BitVec<32> = top
+                    .as_ref()
+                    ._eq(bvi::<32>(0).as_ref())
+                    .ite(bvi::<32>(1).as_ref(), bvi::<32>(0).as_ref())
+                    .into();
 
                 let ops = vec![pop(), push(is_zero)];
 
@@ -1131,13 +1232,12 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
-                    constraints: None
+                    constraints: None,
                 }
-            },
+            }
         }
     }
 }
-
 
 pub fn pop<const SZ: u32>() -> StackOp<SZ> {
     StackOp::Pop
@@ -1150,53 +1250,148 @@ pub fn jumpi() -> Instruction {
     Instruction::JumpI
 }
 
-pub fn is_zero() -> Instruction { Instruction::IsZero }
-pub fn dup1() -> Instruction { Instruction::Dup1 }
-pub fn dup2() -> Instruction { Instruction::Dup2 }
-pub fn dup3() -> Instruction { Instruction::Dup3 }
-pub fn dup4() -> Instruction { Instruction::Dup4 }
-pub fn dup5() -> Instruction { Instruction::Dup5 }
-pub fn dup6() -> Instruction { Instruction::Dup6 }
-pub fn dup7() -> Instruction { Instruction::Dup7 }
-pub fn dup8() -> Instruction { Instruction::Dup8 }
-pub fn dup9() -> Instruction { Instruction::Dup9 }
-pub fn dup10() -> Instruction { Instruction::Dup10 }
-pub fn dup11() -> Instruction { Instruction::Dup11 }
-pub fn dup12() -> Instruction { Instruction::Dup12 }
-pub fn dup13() -> Instruction { Instruction::Dup13 }
-pub fn dup14() -> Instruction { Instruction::Dup14 }
-pub fn dup15() -> Instruction { Instruction::Dup15 }
+pub fn is_zero() -> Instruction {
+    Instruction::IsZero
+}
+pub fn dup1() -> Instruction {
+    Instruction::Dup1
+}
+pub fn dup2() -> Instruction {
+    Instruction::Dup2
+}
+pub fn dup3() -> Instruction {
+    Instruction::Dup3
+}
+pub fn dup4() -> Instruction {
+    Instruction::Dup4
+}
+pub fn dup5() -> Instruction {
+    Instruction::Dup5
+}
+pub fn dup6() -> Instruction {
+    Instruction::Dup6
+}
+pub fn dup7() -> Instruction {
+    Instruction::Dup7
+}
+pub fn dup8() -> Instruction {
+    Instruction::Dup8
+}
+pub fn dup9() -> Instruction {
+    Instruction::Dup9
+}
+pub fn dup10() -> Instruction {
+    Instruction::Dup10
+}
+pub fn dup11() -> Instruction {
+    Instruction::Dup11
+}
+pub fn dup12() -> Instruction {
+    Instruction::Dup12
+}
+pub fn dup13() -> Instruction {
+    Instruction::Dup13
+}
+pub fn dup14() -> Instruction {
+    Instruction::Dup14
+}
+pub fn dup15() -> Instruction {
+    Instruction::Dup15
+}
 
-
-pub fn push1(v: BitVec<1>) -> Instruction { Instruction::Push1(v) }
-pub fn push2(v: BitVec<2>) -> Instruction { Instruction::Push2(v) }
-pub fn push3(v: BitVec<3>) -> Instruction { Instruction::Push3(v) }
-pub fn push4(v: BitVec<4>) -> Instruction { Instruction::Push4(v) }
-pub fn push5(v: BitVec<5>) -> Instruction { Instruction::Push5(v) }
-pub fn push6(v: BitVec<6>) -> Instruction { Instruction::Push6(v) }
-pub fn push7(v: BitVec<7>) -> Instruction { Instruction::Push7(v) }
-pub fn push8(v: BitVec<8>) -> Instruction { Instruction::Push8(v) }
-pub fn push9(v: BitVec<9>) -> Instruction { Instruction::Push9(v) }
-pub fn push10(v: BitVec<10>) -> Instruction { Instruction::Push10(v) }
-pub fn push11(v: BitVec<11>) -> Instruction { Instruction::Push11(v) }
-pub fn push12(v: BitVec<12>) -> Instruction { Instruction::Push12(v) }
-pub fn push13(v: BitVec<13>) -> Instruction { Instruction::Push13(v) }
-pub fn push14(v: BitVec<14>) -> Instruction { Instruction::Push14(v) }
-pub fn push15(v: BitVec<15>) -> Instruction { Instruction::Push15(v) }
-pub fn push16(v: BitVec<16>) -> Instruction { Instruction::Push16(v) }
-pub fn push17(v: BitVec<17>) -> Instruction { Instruction::Push17(v) }
-pub fn push18(v: BitVec<18>) -> Instruction { Instruction::Push18(v) }
-pub fn push19(v: BitVec<19>) -> Instruction { Instruction::Push19(v) }
-pub fn push20(v: BitVec<20>) -> Instruction { Instruction::Push20(v) }
-pub fn push21(v: BitVec<21>) -> Instruction { Instruction::Push21(v) }
-pub fn push22(v: BitVec<22>) -> Instruction { Instruction::Push22(v) }
-pub fn push23(v: BitVec<23>) -> Instruction { Instruction::Push23(v) }
-pub fn push24(v: BitVec<24>) -> Instruction { Instruction::Push24(v) }
-pub fn push25(v: BitVec<25>) -> Instruction { Instruction::Push25(v) }
-pub fn push26(v: BitVec<26>) -> Instruction { Instruction::Push26(v) }
-pub fn push27(v: BitVec<27>) -> Instruction { Instruction::Push27(v) }
-pub fn push28(v: BitVec<28>) -> Instruction { Instruction::Push28(v) }
-pub fn push29(v: BitVec<29>) -> Instruction { Instruction::Push29(v) }
-pub fn push30(v: BitVec<30>) -> Instruction { Instruction::Push30(v) }
-pub fn push31(v: BitVec<31>) -> Instruction { Instruction::Push31(v) }
-pub fn push32(v: BitVec<32>) -> Instruction { Instruction::Push32(v) }
+pub fn push1(v: BitVec<1>) -> Instruction {
+    Instruction::Push1(v)
+}
+pub fn push2(v: BitVec<2>) -> Instruction {
+    Instruction::Push2(v)
+}
+pub fn push3(v: BitVec<3>) -> Instruction {
+    Instruction::Push3(v)
+}
+pub fn push4(v: BitVec<4>) -> Instruction {
+    Instruction::Push4(v)
+}
+pub fn push5(v: BitVec<5>) -> Instruction {
+    Instruction::Push5(v)
+}
+pub fn push6(v: BitVec<6>) -> Instruction {
+    Instruction::Push6(v)
+}
+pub fn push7(v: BitVec<7>) -> Instruction {
+    Instruction::Push7(v)
+}
+pub fn push8(v: BitVec<8>) -> Instruction {
+    Instruction::Push8(v)
+}
+pub fn push9(v: BitVec<9>) -> Instruction {
+    Instruction::Push9(v)
+}
+pub fn push10(v: BitVec<10>) -> Instruction {
+    Instruction::Push10(v)
+}
+pub fn push11(v: BitVec<11>) -> Instruction {
+    Instruction::Push11(v)
+}
+pub fn push12(v: BitVec<12>) -> Instruction {
+    Instruction::Push12(v)
+}
+pub fn push13(v: BitVec<13>) -> Instruction {
+    Instruction::Push13(v)
+}
+pub fn push14(v: BitVec<14>) -> Instruction {
+    Instruction::Push14(v)
+}
+pub fn push15(v: BitVec<15>) -> Instruction {
+    Instruction::Push15(v)
+}
+pub fn push16(v: BitVec<16>) -> Instruction {
+    Instruction::Push16(v)
+}
+pub fn push17(v: BitVec<17>) -> Instruction {
+    Instruction::Push17(v)
+}
+pub fn push18(v: BitVec<18>) -> Instruction {
+    Instruction::Push18(v)
+}
+pub fn push19(v: BitVec<19>) -> Instruction {
+    Instruction::Push19(v)
+}
+pub fn push20(v: BitVec<20>) -> Instruction {
+    Instruction::Push20(v)
+}
+pub fn push21(v: BitVec<21>) -> Instruction {
+    Instruction::Push21(v)
+}
+pub fn push22(v: BitVec<22>) -> Instruction {
+    Instruction::Push22(v)
+}
+pub fn push23(v: BitVec<23>) -> Instruction {
+    Instruction::Push23(v)
+}
+pub fn push24(v: BitVec<24>) -> Instruction {
+    Instruction::Push24(v)
+}
+pub fn push25(v: BitVec<25>) -> Instruction {
+    Instruction::Push25(v)
+}
+pub fn push26(v: BitVec<26>) -> Instruction {
+    Instruction::Push26(v)
+}
+pub fn push27(v: BitVec<27>) -> Instruction {
+    Instruction::Push27(v)
+}
+pub fn push28(v: BitVec<28>) -> Instruction {
+    Instruction::Push28(v)
+}
+pub fn push29(v: BitVec<29>) -> Instruction {
+    Instruction::Push29(v)
+}
+pub fn push30(v: BitVec<30>) -> Instruction {
+    Instruction::Push30(v)
+}
+pub fn push31(v: BitVec<31>) -> Instruction {
+    Instruction::Push31(v)
+}
+pub fn push32(v: BitVec<32>) -> Instruction {
+    Instruction::Push32(v)
+}

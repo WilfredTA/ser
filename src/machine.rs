@@ -228,7 +228,6 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         self.pgm.clone()
     }
 
-
     fn state(&self) -> Self::State {
         self.states
             .clone()

@@ -8,7 +8,6 @@ pub enum BVType {
     Z3(BV<'static>),
 }
 
-
 pub type SymByte = BitVec<8>;
 
 #[derive(Debug, Clone)]

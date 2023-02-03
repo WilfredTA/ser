@@ -5,10 +5,9 @@ use crate::record::{Index, MemChange};
 use crate::smt::BitVec;
 use crate::traits::MachineComponent;
 
-
 #[derive(Clone, Debug, Default)]
 pub struct Memory {
-    pub(crate) inner: Vec<BitVec<1>>
+    pub(crate) inner: Vec<BitVec<1>>,
 }
 
 impl MachineComponent for Memory {
