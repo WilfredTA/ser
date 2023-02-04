@@ -173,6 +173,19 @@ pub enum Instruction {
     // Assert(BitVec<32>),
 }
 
+fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
+    let item = mach.stack().peek_nth(n - 1).unwrap();
+    let ops = vec![push(item.clone())];
+
+    MachineRecord {
+        stack: Some(StackChange::with_ops(ops)),
+        pc: (mach.pc(), mach.pc() + 1),
+        mem: Default::default(),
+        halt: false,
+        constraints: None,
+    }
+}
+
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
         match self {
@@ -462,9 +475,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let stack = mach.stack();
                 let a = stack.peek().unwrap();
                 let b = stack.peek_nth(1).unwrap();
-                let and = a.as_ref().bitor(b.as_ref()).into();
+                let or = a.as_ref().bitor(b.as_ref()).into();
 
-                let ops = vec![pop(), pop(), push(and)];
+                let ops = vec![pop(), pop(), push(or)];
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
@@ -478,9 +491,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let stack = mach.stack();
                 let a = stack.peek().unwrap();
                 let b = stack.peek_nth(1).unwrap();
-                let and = a.as_ref().bitxor(b.as_ref()).into();
+                let xor = a.as_ref().bitxor(b.as_ref()).into();
 
-                let ops = vec![pop(), pop(), push(and)];
+                let ops = vec![pop(), pop(), push(xor)];
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
@@ -1299,198 +1312,22 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                 }
             }
-            Instruction::Dup1 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup2 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup3 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup4 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup5 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup6 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup7 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup8 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup9 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup10 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup11 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup12 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup13 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup14 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup15 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
-            Instruction::Dup16 => {
-                let item = mach.stack().peek_nth(1).unwrap();
-                let ops = vec![push(item.clone())];
-
-                MachineRecord {
-                    stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
-                    mem: Default::default(),
-                    halt: false,
-                    constraints: None,
-                }
-            }
+            Instruction::Dup1 => exec_dup_nth(mach, 1),
+            Instruction::Dup2 => exec_dup_nth(mach, 2),
+            Instruction::Dup3 => exec_dup_nth(mach, 3),
+            Instruction::Dup4 => exec_dup_nth(mach, 4),
+            Instruction::Dup5 => exec_dup_nth(mach, 5),
+            Instruction::Dup6 => exec_dup_nth(mach, 6),
+            Instruction::Dup7 => exec_dup_nth(mach, 7),
+            Instruction::Dup8 => exec_dup_nth(mach, 8),
+            Instruction::Dup9 => exec_dup_nth(mach, 9),
+            Instruction::Dup10 => exec_dup_nth(mach, 10),
+            Instruction::Dup11 => exec_dup_nth(mach, 11),
+            Instruction::Dup12 => exec_dup_nth(mach, 12),
+            Instruction::Dup13 => exec_dup_nth(mach, 13),
+            Instruction::Dup14 => exec_dup_nth(mach, 14),
+            Instruction::Dup15 => exec_dup_nth(mach, 15),
+            Instruction::Dup16 => exec_dup_nth(mach, 16),
             Instruction::Swap1 => todo!(),
             Instruction::Swap2 => todo!(),
             Instruction::Swap3 => todo!(),
