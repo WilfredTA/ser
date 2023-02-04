@@ -192,8 +192,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Stop => todo!(),
             Instruction::Add => {
                 let stack = mach.stack();
-                let stack_top = stack.peek().unwrap();
-                let stack_top2 = stack.peek_nth(1).unwrap();
+                let [stack_top, stack_top2] = stack.peek_top().unwrap();
 
                 let stack_op_1 = StackOp::Pop;
                 let stack_op_2 = StackOp::Pop;
@@ -216,8 +215,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Mul => {
                 let stack = mach.stack();
-                let mul1 = stack.peek().unwrap();
-                let mul2 = stack.peek_nth(1).unwrap();
+                let [mul1, mul2] = stack.peek_top().unwrap();
                 let product: BitVec<32> = mul1.as_ref().bvmul(mul2.as_ref()).into();
                 let ops = vec![pop(), pop(), push(product)];
                 MachineRecord {
@@ -230,8 +228,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Sub => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let difference: BitVec<32> = a.as_ref().bvsub(b.as_ref()).into();
                 let ops = vec![pop(), pop(), push(difference)];
                 MachineRecord {
@@ -244,8 +241,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Div => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let quot: BitVec<32> = a.as_ref().bvudiv(b.as_ref()).into();
                 let ops = vec![pop(), pop(), push(quot)];
                 MachineRecord {
@@ -258,8 +254,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::SDiv => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let quot: BitVec<32> = a.as_ref().bvsdiv(b.as_ref()).into();
                 let ops = vec![pop(), pop(), push(quot)];
                 MachineRecord {
@@ -272,8 +267,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::SMod => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let rem: BitVec<32> = a.as_ref().bvsmod(b.as_ref()).into();
                 let ops = vec![pop(), pop(), push(rem)];
                 MachineRecord {
@@ -286,8 +280,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Mod => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let rem: BitVec<32> = a.as_ref().bvurem(b.as_ref()).into();
                 let ops = vec![pop(), pop(), push(rem)];
                 MachineRecord {
@@ -300,9 +293,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::AddMod => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
-                let n = stack.peek_nth(2).unwrap();
+                let [a, b, n] = stack.peek_top().unwrap();
                 let res: BitVec<32> = a.as_ref().bvadd(b.as_ref()).bvurem(n.as_ref()).into();
                 let ops = vec![pop(), pop(), pop(), push(res)];
                 MachineRecord {
@@ -315,9 +306,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::MulMod => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
-                let n = stack.peek_nth(2).unwrap();
+                let [a, b, n] = stack.peek_top().unwrap();
                 let res: BitVec<32> = a.as_ref().bvmul(b.as_ref()).bvurem(n.as_ref()).into();
                 let ops = vec![pop(), pop(), pop(), push(res)];
                 MachineRecord {
@@ -330,8 +319,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Exp => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let power = stack.peek_nth(1).unwrap();
+                let [a, power] = stack.peek_top().unwrap();
                 let mut power_conc = power.as_ref().as_u64().unwrap();
                 let mut exp: BitVec<32> = if power_conc == 0 {
                     bvi(1)
@@ -357,8 +345,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Lt => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let lt: BitVec<32> = a
                     .as_ref()
                     .bvult(b.as_ref())
@@ -377,8 +364,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Gt => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let lt: BitVec<32> = a
                     .as_ref()
                     .bvugt(b.as_ref())
@@ -397,8 +383,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Slt => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let lt: BitVec<32> = a
                     .as_ref()
                     .bvslt(b.as_ref())
@@ -417,8 +402,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Sgt => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let gt: BitVec<32> = a
                     .as_ref()
                     .bvsgt(b.as_ref())
@@ -437,8 +421,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Eq => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let eq: BitVec<32> = a
                     .as_ref()
                     ._eq(b.as_ref())
@@ -457,8 +440,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::And => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let and = a.as_ref().bitand(b.as_ref()).into();
 
                 let ops = vec![pop(), pop(), push(and)];
@@ -473,8 +455,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Or => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let or = a.as_ref().bitor(b.as_ref()).into();
 
                 let ops = vec![pop(), pop(), push(or)];
@@ -489,8 +470,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Xor => {
                 let stack = mach.stack();
-                let a = stack.peek().unwrap();
-                let b = stack.peek_nth(1).unwrap();
+                let [a, b] = stack.peek_top().unwrap();
                 let xor = a.as_ref().bitxor(b.as_ref()).into();
 
                 let ops = vec![pop(), pop(), push(xor)];
@@ -522,9 +502,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Byte => todo!(),
             Instruction::Shl => {
                 let stack = mach.stack();
-                let shift = stack.peek().unwrap();
-                let value = stack.peek_nth(1).unwrap();
-                
+                let [shift, value] = stack.peek_top().unwrap();
+
                 let shl = value.as_ref().bvshl(shift.as_ref()).into();
 
                 let ops = vec![pop(), pop(), push(shl)];
@@ -539,9 +518,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Shr => {
                 let stack = mach.stack();
-                let shift = stack.peek().unwrap();
-                let value = stack.peek_nth(1).unwrap();
-                
+                let [shift, value] = stack.peek_top().unwrap();
+
                 let shr = value.as_ref().bvlshr(shift.as_ref()).into();
 
                 let ops = vec![pop(), pop(), push(shr)];
@@ -553,7 +531,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::Sha3 => todo!(),
             Instruction::Address => todo!(),
             Instruction::Balance => {

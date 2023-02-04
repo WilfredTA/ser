@@ -37,6 +37,14 @@ impl<const SZ: u32> Stack<SZ> {
     pub fn peek_nth(&self, n: usize) -> Option<&BitVec<SZ>> {
         self.stack.get(self.size - n - 1)
     }
+
+    pub fn peek_top<const N: usize>(&self) -> Option<[&BitVec<SZ>; N]> {
+        if self.size() < N {
+            return None;
+        }
+
+        Some(std::array::from_fn(|i| self.peek_nth(i).unwrap()))
+    }
 }
 
 impl<const SZ: u32> MachineComponent for Stack<SZ> {
