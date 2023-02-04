@@ -10,6 +10,7 @@ use crate::traits::MachineComponent;
 #[derive(Clone, Debug, Default)]
 pub struct Memory {
     pub(crate) inner: Vec<BitVec<1>>,
+    highest_idx: usize,
 }
 
 impl MachineComponent for Memory {
@@ -17,13 +18,26 @@ impl MachineComponent for Memory {
 
     fn apply_change(&mut self, rec: Self::Record) {
         let MemChange { ops_log } = rec;
-
+        let mut highest_idx = self.highest_idx;
         ops_log.into_iter().for_each(|op| match op {
             MemOp::Write { val, idx } => {
+                let idx_cmp: usize = idx.clone().into();
+                if idx_cmp > highest_idx {
+                    highest_idx = idx_cmp;
+                }
                 self.write_word(idx, val);
             }
-            MemOp::Read { idx } => {}
+            MemOp::Read { idx } => {
+                let idx_cmp: usize = idx.into();
+                if idx_cmp > highest_idx {
+                    highest_idx = idx_cmp;
+                }
+            }
             MemOp::WriteByte { idx, val } => {
+                let idx_cmp: usize = idx.clone().into();
+                if idx_cmp > highest_idx {
+                    highest_idx = idx_cmp;
+                }
                 self.write(idx, val);
             }
         })
@@ -33,6 +47,10 @@ impl MachineComponent for Memory {
 impl Memory {
     pub fn size(&self) -> usize {
         self.inner.len()
+    }
+
+    pub fn m_size(&self) -> usize {
+        self.highest_idx
     }
 
     pub fn write(&mut self, idx: Index, val: BitVec<1>) {

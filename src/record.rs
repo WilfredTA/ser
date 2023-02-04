@@ -15,6 +15,11 @@ pub struct MachineRecord<const STACK_ITEM_SZ: u32> {
 
 pub type Index = BitVec<32>;
 
+impl From<Index> for usize {
+    fn from(idx: Index) -> Self {
+        idx.as_ref().as_u64().unwrap() as usize
+    }
+}
 #[derive(Default, Clone, Debug)]
 pub struct MemChange {
     pub ops_log: Vec<MemOp>,

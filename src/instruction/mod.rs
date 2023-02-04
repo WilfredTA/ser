@@ -712,7 +712,21 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false,
                 }
             }
-            Instruction::MSize => todo!(),
+            Instruction::MSize => {
+                let mem = mach.mem();
+                let size = mem.m_size();
+                let ops = vec![push(bvi(size as i32))];
+
+                let stack = Some(StackChange::with_ops(ops));
+
+                MachineRecord {
+                    stack,
+                    mem: Default::default(),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    halt: false,
+                    constraints: None,
+                }
+            }
             Instruction::Gas => todo!(),
             Instruction::JumpDest => todo!(),
             Instruction::Push1(bv) => {
