@@ -13,9 +13,22 @@ pub type SymByte = BitVec<8>;
 #[derive(Debug, Clone)]
 pub struct BitVec<const SZ: u32> {
     pub inner: BVType,
-    typ: super::SolverType,
+    pub(crate) typ: super::SolverType,
 }
 
+impl<const SZ: u32> BitVec<SZ> {
+    pub fn with_bv(bv: BV<'static>) -> Self {
+        Self {
+            inner: BVType::Z3(bv),
+            typ: SolverType::Z3,
+        }
+    }
+    pub fn simplify(&mut self) {
+        let BVType::Z3(bv) = &self.inner;
+        self.inner = BVType::Z3(bv.simplify());
+
+    }
+}
 impl<const SZ: u32> Default for BitVec<SZ> {
     fn default() -> Self {
         let ctx = ctx();

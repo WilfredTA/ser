@@ -4,7 +4,7 @@ use std::ops::{BitAnd, BitOr, BitXor};
 use ruint::aliases::U256;
 use z3_ext::ast::{Ast, Bool, BV};
 
-use crate::record::push;
+use crate::record::{push, MemChange, MemOp};
 use crate::state::env::*;
 use crate::state::evm::EvmState;
 use crate::traits::*;
@@ -600,9 +600,79 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false,
                 }
             }
-            Instruction::MLoad => todo!(),
-            Instruction::MStore => todo!(),
-            Instruction::MStore8 => todo!(),
+            Instruction::MLoad => {
+                let stack = mach.stack();
+                let dest = stack.peek().unwrap();
+                let mut val_mem = mach.memory.read_word(dest.clone());
+                val_mem.simplify();
+
+                let mem_change = MemChange {
+                    ops_log: vec![MemOp::Read { idx: dest.clone() }],
+                };
+
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(vec![pop(), push(val_mem)])),
+                    mem: Some(mem_change),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    halt: false,
+                    constraints: None,
+                }
+            }
+            Instruction::MStore => {
+                let stack = mach.stack();
+
+                let dest = stack.peek().unwrap();
+
+                let val = stack.peek_nth(1).unwrap();
+
+
+                let mem_change = MemChange {
+                    ops_log: vec![MemOp::Write {
+                        idx: dest.clone(),
+                        val: val.clone(),
+                    }],
+                };
+
+                let stack_change = StackChange::with_ops(vec![pop(), pop()]);
+
+                MachineRecord {
+                    mem: Some(mem_change),
+                    stack: Some(stack_change),
+                    constraints: None,
+                    halt: false,
+                    pc: (mach.pc(), mach.pc() + 1),
+                }
+            }
+            Instruction::MStore8 => {
+                let stack = mach.stack();
+
+                let dest = stack.peek().unwrap();
+
+                let val = stack.peek_nth(1).unwrap();
+
+                //let val_inner = val.as_ref().extract(31 * 8 + 7, 31 * 8);
+                let val_inner = val.as_ref().extract(7, 0);
+
+                let val: BitVec<1> = BitVec::with_bv(val_inner.simplify());
+
+
+                let mem_change = MemChange {
+                    ops_log: vec![MemOp::WriteByte {
+                        idx: dest.clone(),
+                        val,
+                    }],
+                };
+
+                let stack_change = StackChange::with_ops(vec![pop(), pop()]);
+
+                MachineRecord {
+                    mem: Some(mem_change),
+                    stack: Some(stack_change),
+                    constraints: None,
+                    halt: false,
+                    pc: (mach.pc(), mach.pc() + 1),
+                }
+            }
             Instruction::SLoad => todo!(),
             Instruction::SStore => todo!(),
             Instruction::Jump => todo!(),

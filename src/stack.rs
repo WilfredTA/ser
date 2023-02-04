@@ -11,14 +11,17 @@ use z3_ext::{
 #[derive(Default, Debug, Clone)]
 pub struct Stack<const SZ: u32> {
     stack: SmallVec<[BitVec<SZ>; 1024]>,
+    size: usize,
 }
 
 impl<const SZ: u32> Stack<SZ> {
     pub fn push(&mut self, val: BitVec<SZ>) {
+        self.size += 1;
         self.stack.push(val);
     }
 
     pub fn pop(&mut self) -> BitVec<SZ> {
+        self.size -= 1;
         self.stack.pop().unwrap()
     }
 
@@ -27,11 +30,12 @@ impl<const SZ: u32> Stack<SZ> {
     }
 
     pub fn size(&self) -> usize {
+        assert!(self.stack.len() == self.size);
         self.stack.len()
     }
 
     pub fn peek_nth(&self, n: usize) -> Option<&BitVec<SZ>> {
-        self.stack.get(n)
+        self.stack.get(self.size - n - 1)
     }
 }
 
@@ -45,7 +49,7 @@ impl<const SZ: u32> MachineComponent for Stack<SZ> {
             ops,
         } = rec;
 
-        let mut new_stack = self.stack.clone();
+        let mut new_stack = self.clone();
 
         ops.iter().for_each(|op| match op {
             crate::record::StackOp::Push(v) => new_stack.push(v.clone()),
@@ -53,6 +57,8 @@ impl<const SZ: u32> MachineComponent for Stack<SZ> {
                 new_stack.pop();
             }
         });
-        self.stack = new_stack;
+
+        self.stack = new_stack.stack;
+        self.size = new_stack.size;
     }
 }

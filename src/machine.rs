@@ -315,3 +315,47 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
     }
     eprintln!("STATES > {:#?}", evm.states);
 }
+
+#[test]
+fn test_mem_store_mem_load() {
+    let pgm = vec![
+        push32(bvi(3)),
+        push32(bvi(2)),
+        Instruction::MStore,
+        push32(bvi(2)),
+        Instruction::MLoad,
+        push32(bvi(5)),
+        Instruction::MStore8,
+        push32(bvi(5)),
+        Instruction::MLoad,
+    ];
+    /**
+       stack       memory
+       3            null
+       2 3          null
+
+       null         {2: 3}
+       2            {2 : 3}
+       3            {2 : 3}
+       5 3          {2: 3}
+       null         {2: 3, 5: 3}
+       3            {2: 3, 5: 3}
+    */
+    let mut evm = Evm::new(pgm);
+
+    {
+        let sat_branches = evm.exec_check();
+        assert_eq!(sat_branches.len(), 1);
+        let top = sat_branches
+            .first()
+            .unwrap()
+            .0
+             .0
+            .stack()
+            .peek()
+            .cloned()
+            .unwrap();
+        assert_eq!(top, bvi(3));
+    }
+    eprintln!("STATES > {:#?}", evm.states);
+}
