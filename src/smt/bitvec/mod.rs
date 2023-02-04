@@ -26,7 +26,6 @@ impl<const SZ: u32> BitVec<SZ> {
     pub fn simplify(&mut self) {
         let BVType::Z3(bv) = &self.inner;
         self.inner = BVType::Z3(bv.simplify());
-
     }
 }
 impl<const SZ: u32> Default for BitVec<SZ> {

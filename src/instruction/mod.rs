@@ -625,7 +625,6 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 let val = stack.peek_nth(1).unwrap();
 
-
                 let mem_change = MemChange {
                     ops_log: vec![MemOp::Write {
                         idx: dest.clone(),
@@ -654,7 +653,6 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let val_inner = val.as_ref().extract(7, 0);
 
                 let val: BitVec<1> = BitVec::with_bv(val_inner.simplify());
-
 
                 let mem_change = MemChange {
                     ops_log: vec![MemOp::WriteByte {
