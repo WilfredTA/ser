@@ -35,6 +35,9 @@ impl<const SZ: u32> Stack<SZ> {
     }
 
     pub fn peek_nth(&self, n: usize) -> Option<&BitVec<SZ>> {
+        if n >= self.size() {
+            return None;
+        }
         self.stack.get(self.size - n - 1)
     }
 
