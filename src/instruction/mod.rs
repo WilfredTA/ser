@@ -33,11 +33,12 @@ pub enum Instruction {
     Sub,
     Div,
     SDiv,
-    SMod,
     Mod,
+    SMod,
     AddMod,
     MulMod,
     Exp,
+    SignExtend,
     Lt,
     Gt,
     Slt,
@@ -1366,6 +1367,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Revert => todo!(),
             Instruction::Invalid => todo!(),
             Instruction::SelfDestruct => todo!(),
+            Instruction::SignExtend => todo!(),
             Instruction::Push(bv) => {
                 let stack_change = StackChange {
                     pop_qty: 0,

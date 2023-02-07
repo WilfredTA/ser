@@ -13,7 +13,13 @@ uuid = { version = "1.2.2", features = ["v4"] }
 hex = "0.4.3"
 smallvec = "1.10.0"
 rand = "0.8.5"
-
+revm = { version = "2.3", default-features = false, features = [
+    "std",
+    "k256",
+    "with-serde",
+    "memory_limit",
+    "optional_eip3607"
+] }
 
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]

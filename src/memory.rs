@@ -54,7 +54,7 @@ impl Memory {
     }
 
     pub fn write(&mut self, idx: Index, val: BitVec<1>) {
-        let idx = idx.as_ref().as_u64().unwrap() as usize;
+        let idx = idx.into();
         self.inner.insert(idx, val);
         // Pad rest with zero
         for i in 0..30 {
@@ -62,13 +62,13 @@ impl Memory {
         }
     }
     pub fn read(&self, idx: Index) -> BitVec<1> {
-        let idx = idx.as_ref().as_u64().unwrap() as usize;
+        let idx: usize = idx.into();
         let val = self.inner.get(idx).unwrap().clone();
         val
     }
     pub fn read_word(&self, idx: Index) -> BitVec<32> {
         let mut i = 0;
-        let idx = idx.as_ref().as_u64().unwrap() as usize;
+        let idx: usize = idx.into();
         let mut bytes = vec![];
         let mut mem = self.inner.clone();
         while i < 32 {
@@ -79,8 +79,14 @@ impl Memory {
         }
         let mut new_bv: BitVec<1> = BitVec::default();
         let mut new_bv_inner = new_bv.as_ref().clone();
-        bytes.into_iter().for_each(|b| {
-            new_bv_inner = new_bv_inner.concat(&b);
+        bytes.into_iter().enumerate().for_each(|(i, b)| {
+            if i == 0 {
+                new_bv = BitVec::with_bv(b);
+                new_bv_inner = new_bv.as_ref().clone();
+            } else {
+                new_bv_inner = new_bv_inner.concat(&b);
+            }
+
         });
         BitVec {
             inner: BVType::Z3(new_bv_inner),
@@ -89,7 +95,7 @@ impl Memory {
     }
 
     pub fn write_word(&mut self, idx: Index, word: BitVec<32>) {
-        let idx = idx.as_ref().as_u64().unwrap() as usize;
+        let idx = idx.into();
         if idx > self.size() {
             for i in 0..idx - self.size() {
                 self.inner.push(BitVec::default());
@@ -98,7 +104,7 @@ impl Memory {
         //eprintln!("WORD: {word:#?}");
         for i in 0..32 {
             let ii = 32 - i - 1;
-            let bv = word.as_ref().extract(ii * 8 + 7, ii * 8);
+            let bv = word.as_ref().extract(ii * 8 + 7, ii * 8).simplify();
             // eprintln!("Extracted: {:#?}", bv);
 
             let bv: BitVec<1> = bv.into();

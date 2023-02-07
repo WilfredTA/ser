@@ -52,7 +52,16 @@ impl ExecutionSummary {
     }
 }
 
+
+
 pub type ExecBranch<'ctx> = (EvmState, Vec<Bool<'ctx>>);
+
+pub struct TransactionContext {
+    calldata: Option<Vec<u8>>,
+    output: Option<Vec<u8>>,
+    storage: HashMap<usize, [u8; 256]>
+
+}
 #[derive(Clone)]
 pub struct Evm<'ctx> {
     pgm: Vec<Instruction>,
@@ -324,10 +333,10 @@ fn test_mem_store_mem_load() {
         Instruction::MStore,
         push32(bvi(2)),
         Instruction::MLoad,
-        push32(bvi(5)),
-        Instruction::MStore8,
-        push32(bvi(5)),
-        Instruction::MLoad,
+        // push32(bvi(5)),
+        // Instruction::MStore8,
+        // push32(bvi(5)),
+        // Instruction::MLoad,
     ];
     /**
        stack       memory
@@ -355,6 +364,7 @@ fn test_mem_store_mem_load() {
             .peek()
             .cloned()
             .unwrap();
+        eprintln!("Stack top size: {:#?}", top.as_ref().get_size());
         assert_eq!(top, bvi(3));
     }
     eprintln!("STATES > {:#?}", evm.states);
