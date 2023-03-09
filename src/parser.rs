@@ -41,11 +41,26 @@ fn is_push(b: u8) -> bool {
 }
 
 fn push_size(b: u8) -> u8 {
-    b - 0x60
+    if b > 0x60 {
+        b - 0x60 + 1
+    } else {
+        0
+    }
+
 }
 
 
+impl Instruction {
+    pub fn from_byte(value: u8) -> Self {
+        value.into()
 
+    }
+
+    // Has to handle when it's a push or dup, otherwise easy 1-1 conversion
+    pub fn from_slice(bytes: &[u8]) -> Vec<Instruction> {
+        todo!()
+    }
+}
 impl From<u8> for Instruction {
     fn from(value: u8) -> Self {
 
@@ -191,8 +206,22 @@ impl From<u8> for Instruction {
             0xfe => Instruction::Invalid,  
             0xff => Instruction::SelfDestruct,  
             _ => Instruction::Invalid,
-        };
+        }
         
-        todo!()
+    }
+}
+
+#[test]
+fn is_push_works() {
+    for b in (0x60_u8..0x7f) {
+        assert!(is_push(b));
+    }
+
+    for b in (0x00_u8 .. 0x5f) {
+        assert!(!is_push(b));
+    }
+
+    for b in (0x80..0xff_u8) {
+        assert!(!is_push(b));
     }
 }
