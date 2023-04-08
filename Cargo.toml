@@ -20,7 +20,7 @@ revm = { version = "2.3", default-features = false, features = [
     "memory_limit",
     "optional_eip3607"
 ] }
-
+ethers-solc = { git = "https://github.com/gakonst/ethers-rs", features = ["full"]}
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 z3 = {version = "0.11.2", features = ["static-link-z3"]}

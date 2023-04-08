@@ -77,7 +77,12 @@ fn test_basic_lookup_works_in_acc_storage() {
 fn test_basic_lookup_global_storage() {
     let addr = Address::new_const("Address1");
     let addr2 = Address::new_const("Address2");
-    let mut global = GlobalStorage::init_with_addrs(vec![addr, addr2]);
+    let mut global = GlobalStorage::init_with_addrs(vec![addr, addr2.clone()]);
 
+    let mut addr_2_storage = global.get(&addr2);
+    addr_2_storage.sstore(bvi(3), StorageValue::BV(bvc("storage_val_at_idx_3")));
+    global.inner.insert(addr2.clone(), addr_2_storage);
+
+    assert_eq!(global.get(&addr2).sload(&bvi(3)), StorageValue::BV(bvc("storage_val_at_idx_3")));
 
 }

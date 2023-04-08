@@ -36,12 +36,27 @@ impl<'a> Parser<'a> {
 
 }
 
+fn is_dup(b: u8) -> bool {
+    0x80 <= b && 0x8f >= b
+}
+
+fn is_swap(b: u8) -> bool {
+    0x90 <= b && 0x9f >= b
+}
+
 fn is_push(b: u8) -> bool {
     0x60 <= b && 0x7f >= b
 }
 
+fn dup_size(b: u8) -> u8 {
+    if b >= 0x80 {
+        b - 0x80 + 1
+    } else {
+        0
+    }
+}
 fn push_size(b: u8) -> u8 {
-    if b > 0x60 {
+    if b >= 0x60 {
         b - 0x60 + 1
     } else {
         0
@@ -58,7 +73,20 @@ impl Instruction {
 
     // Has to handle when it's a push or dup, otherwise easy 1-1 conversion
     pub fn from_slice(bytes: &[u8]) -> Vec<Instruction> {
-        todo!()
+       let instruction_byte = *bytes.first().unwrap();
+       let mut instrs = vec![];
+       if is_push(instruction_byte) {
+        let push_size = push_size(instruction_byte);
+        
+       } else if is_dup(instruction_byte) {
+
+       } else if is_swap(instruction_byte) {
+
+       } else {
+
+       }
+
+       instrs
     }
 }
 impl From<u8> for Instruction {
