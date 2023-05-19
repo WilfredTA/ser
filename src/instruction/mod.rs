@@ -25,7 +25,7 @@ pub fn random_bv_arg() -> BitVec<32> {
     BitVec::new_literal(rand_num)
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Instruction {
     Stop,
     Add,

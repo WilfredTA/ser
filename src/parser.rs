@@ -2,6 +2,7 @@ use crate::{instruction::*, smt::BitVec, bvi};
 use revm::{
     opcode::OpCode, OPCODE_JUMPMAP
 };
+use hex::{decode};
 pub struct Parser<'a> {
     pgm: &'a str
 }
@@ -14,22 +15,37 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn mnemonic(&self) -> Vec<Instruction> {
-        let bytes = self.pgm.as_bytes();
+    pub fn parse(&self) -> Vec<Instruction> {
+        let bytes = decode(self.pgm).unwrap();
         let mut opcodes: Vec<Instruction> = vec![];
-
+        
         let mut pgm = vec![];
-        for b in bytes {
-            if is_push(*b) {
-                let (inst, new_bytes) = parse_push(bytes);
-            } else if is_dup(*b) {
-                todo!()
-            } else if is_swap(*b) {
-                todo!()
+        let mut skip_size = 0;
+        let mut idx = 0_usize;
+        for b in &bytes {
+            
+            let b = *b;
+            if skip_size > 0 {
+                skip_size -= 1;
+                continue;
+                idx += 1;
+            }
+            if is_push(b) {
+                // push1 0xab push4 0xabcd
+                let sz = push_size(b);
+                let (inst, push_size, new_bytes) = parse_push(&bytes[idx as usize..]);
+                skip_size = push_size;
+                idx += skip_size as usize;
+                pgm.push(inst);
+            } else if is_dup(b) {
+                pgm.push(parse_dup(b))
+            } else if is_swap(b) {
+                pgm.push(parse_swap(b));
             } else {
-                let inst = Instruction::from(*b);
+                let inst = Instruction::from(b);
                 pgm.push(inst);  
             }
+            idx += 1;
           
         }
         pgm
@@ -40,12 +56,21 @@ impl<'a> Parser<'a> {
 }
 
 // Returns instruction + any left over bytes in the slice after extracting the opcode & opcode args
-fn parse_push(bytes: &[u8]) -> (Instruction, &[u8]) {
+fn parse_push(bytes: &[u8]) -> (Instruction, u8, &[u8]) {
 
     let instruction_byte = *bytes.first().unwrap();
     let push_size = push_size(instruction_byte);
-    let push_val = &bytes[1..push_size as usize];
-    (push_op(push_size, push_val), &bytes[(push_size + 1) as usize..bytes.len()])
+
+    let push_val = &bytes[1..(push_size + 1) as usize];
+    (push_op(push_size, push_val),push_size, &bytes[(push_size) as usize..bytes.len()])
+}
+
+fn parse_dup(byte: u8) -> Instruction {
+    dup_op(dup_size(byte))
+}
+
+fn parse_swap(byte: u8) -> Instruction {
+    swap_op(swap_size(byte))
 }
 
 fn is_dup(b: u8) -> bool {
@@ -85,9 +110,16 @@ fn push_size(b: u8) -> u8 {
 
 
 fn push_op(sz: u8, val: &[u8]) -> Instruction {
-    let mut buf:[u8; 8] = [0u8; 8]; 
-    buf.copy_from_slice(val);
-    let val = u64::from_be_bytes(buf);
+    let mut zero_len = 8 - val.len();
+    let mut buf = vec![];
+    buf.extend_from_slice(val);
+    for _ in (0..zero_len) {
+        buf.push(0);
+    }
+    let mut sliced = [0u8; 8];
+    sliced.copy_from_slice(&buf);
+
+    let val = u64::from_le_bytes(sliced);
     match sz {
         1 => push1(BitVec::<1>::new_literal(val)),
         3 => push2(BitVec::<2>::new_literal(val)),
@@ -121,7 +153,9 @@ fn push_op(sz: u8, val: &[u8]) -> Instruction {
         30 => push30(BitVec::<30>::new_literal(val)),
         31 => push31(BitVec::<31>::new_literal(val)),
         32 => push32(BitVec::<32>::new_literal(val)),
-        _ => todo!()
+        _ => {
+            todo!()
+        }
     }
 }
 
@@ -389,16 +423,20 @@ contract Counter {
  */
 #[test]
 fn can_parse_simple_pgm() {
-    const counter_sol_code: &'static str = "0x604260005260206000F3";
-
+    const counter_sol_code: &'static str = "604260005260206000F3";
+    //const counter_sol_code: &'static str = "60426000F3";
+    let pgm = Parser::with_pgm(counter_sol_code).parse();
+    
     let expected = vec![
         Instruction::Push1(bvi(0x42)),
         Instruction::Push1(bvi(0)),
         Instruction::MStore,
-        Instruction::Push1(bvi(0x42)),
+        Instruction::Push1(bvi(0x20)),
         Instruction::Push1(bvi(0)),
         Instruction::Return
     ];
+
+    assert_eq!(expected, pgm);
 
 
 }
