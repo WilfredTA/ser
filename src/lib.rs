@@ -11,7 +11,7 @@ pub mod state;
 pub mod traits;
 pub mod storage;
 pub mod parser;
-
+use paste::{expr, item, paste};
 use instruction::*;
 use smt::*;
 use stack::*;
@@ -26,7 +26,6 @@ pub fn bvi<const SZ: u32>(val: impl Into<i32>) -> BitVec<SZ> {
 pub fn bvc(val: impl AsRef<str>) -> BitVec<32> {
     BitVec::new_const(val)
 }
-
 
 #[cfg(test)]
 mod test {

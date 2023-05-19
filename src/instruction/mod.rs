@@ -1435,6 +1435,12 @@ pub fn dup14() -> Instruction {
 pub fn dup15() -> Instruction {
     Instruction::Dup15
 }
+pub fn dup16() -> Instruction {
+    Instruction::Dup16
+}
+// pub fn push<const SZ: u32>(size: usize, val: BitVec<>) -> Instruction {
+//     Instruction::Push5(BitVec::default())
+// }
 
 pub fn push1(v: BitVec<1>) -> Instruction {
     Instruction::Push1(v)

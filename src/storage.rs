@@ -86,3 +86,12 @@ fn test_basic_lookup_global_storage() {
     assert_eq!(global.get(&addr2).sload(&bvi(3)), StorageValue::BV(bvc("storage_val_at_idx_3")));
 
 }
+
+
+
+ // Global Storage:
+ // HashMap(Address -> AccountStorage)
+ // AccountStorage(BitVec<32> -> StorageValue)
+ // StorageValue(ConcreteBytes<32> OR SymbolicBytes<32>)
+ //
+ 

@@ -298,7 +298,7 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
         add(),
         push32(bvi(7)),
         Instruction::JumpI,
-        Instruction::Push(bvi(100)),
+        Instruction::Push32(bvi(100)),
         push32(bvi(50)),
     ];
 

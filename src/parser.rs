@@ -1,4 +1,4 @@
-use crate::instruction::Instruction;
+use crate::{instruction::*, smt::BitVec, bvi};
 use revm::{
     opcode::OpCode, OPCODE_JUMPMAP
 };
@@ -20,20 +20,32 @@ impl<'a> Parser<'a> {
 
         let mut pgm = vec![];
         for b in bytes {
-            
-            let inst = Instruction::from(*b);
-            
-            pgm.push(inst);            
-
+            if is_push(*b) {
+                let (inst, new_bytes) = parse_push(bytes);
+            } else if is_dup(*b) {
+                todo!()
+            } else if is_swap(*b) {
+                todo!()
+            } else {
+                let inst = Instruction::from(*b);
+                pgm.push(inst);  
+            }
+          
         }
         pgm
 
        
     }
 
-    
+}
 
+// Returns instruction + any left over bytes in the slice after extracting the opcode & opcode args
+fn parse_push(bytes: &[u8]) -> (Instruction, &[u8]) {
 
+    let instruction_byte = *bytes.first().unwrap();
+    let push_size = push_size(instruction_byte);
+    let push_val = &bytes[1..push_size as usize];
+    (push_op(push_size, push_val), &bytes[(push_size + 1) as usize..bytes.len()])
 }
 
 fn is_dup(b: u8) -> bool {
@@ -55,40 +67,139 @@ fn dup_size(b: u8) -> u8 {
         0
     }
 }
+
+fn swap_size(b: u8) -> u8 {
+    if b >= 0x90 {
+        b - 0x90 + 1
+    } else {
+        0
+    }
+}
 fn push_size(b: u8) -> u8 {
     if b >= 0x60 {
         b - 0x60 + 1
     } else {
         0
     }
+}
 
+
+fn push_op(sz: u8, val: &[u8]) -> Instruction {
+    let mut buf:[u8; 8] = [0u8; 8]; 
+    buf.copy_from_slice(val);
+    let val = u64::from_be_bytes(buf);
+    match sz {
+        1 => push1(BitVec::<1>::new_literal(val)),
+        3 => push2(BitVec::<2>::new_literal(val)),
+        2 => push3(BitVec::<3>::new_literal(val)),
+        4 => push4(BitVec::<4>::new_literal(val)),
+        5 => push5(BitVec::<5>::new_literal(val)),
+        6 => push6(BitVec::<6>::new_literal(val)),
+        7 => push7(BitVec::<7>::new_literal(val)),
+        8 => push8(BitVec::<8>::new_literal(val)),
+        9 => push9(BitVec::<9>::new_literal(val)),
+        10 => push10(BitVec::<10>::new_literal(val)),
+        11 => push11(BitVec::<11>::new_literal(val)),
+        12 => push12(BitVec::<12>::new_literal(val)),
+        13 => push13(BitVec::<13>::new_literal(val)),
+        14 => push14(BitVec::<14>::new_literal(val)),
+        15 => push15(BitVec::<15>::new_literal(val)),
+        16 => push16(BitVec::<16>::new_literal(val)),
+        17 => push17(BitVec::<17>::new_literal(val)),
+        18 => push18(BitVec::<18>::new_literal(val)),
+        19 => push19(BitVec::<19>::new_literal(val)),
+        20 => push20(BitVec::<20>::new_literal(val)),
+        21 => push21(BitVec::<21>::new_literal(val)),
+        21 => push22(BitVec::<22>::new_literal(val)),
+        23 => push23(BitVec::<23>::new_literal(val)),
+        24 => push24(BitVec::<24>::new_literal(val)),
+        25 => push25(BitVec::<25>::new_literal(val)),
+        26 => push26(BitVec::<26>::new_literal(val)),
+        27 => push27(BitVec::<27>::new_literal(val)),
+        28 => push28(BitVec::<28>::new_literal(val)),
+        29 => push29(BitVec::<29>::new_literal(val)),
+        30 => push30(BitVec::<30>::new_literal(val)),
+        31 => push31(BitVec::<31>::new_literal(val)),
+        32 => push32(BitVec::<32>::new_literal(val)),
+        _ => todo!()
+    }
+}
+
+fn swap_op(sz: u8) -> Instruction {
+    match sz {
+        1 => Instruction::Swap1,
+        2 => Instruction::Swap2,
+        3 => Instruction::Swap3,
+        4 => Instruction::Swap4,
+        5 => Instruction::Swap5,
+        6 => Instruction::Swap6,
+        7 => Instruction::Swap7,
+        8 => Instruction::Swap8,
+        9 => Instruction::Swap9,
+        10 => Instruction::Swap10,
+        11 => Instruction::Swap11,
+        12 => Instruction::Swap12,
+        13 => Instruction::Swap13,
+        14 => Instruction::Swap14,
+        15 => Instruction::Swap15,
+        16 => Instruction::Swap16,
+        _ => todo!()
+    }
+}
+
+fn dup_op(sz: u8) -> Instruction {
+    match sz {
+        1 => dup1(),
+        2 => dup2(),
+        3 => dup3(),
+        4 => dup4(),
+        5 => dup5(),
+        6 => dup6(),
+        7 => dup7(),
+        8 => dup8(),
+        9 => dup9(),
+        10 => dup10(),
+        11 => dup11(),
+        12 => dup12(),
+        13 => dup13(),
+        14 => dup14(),
+        15 => dup15(),
+        16 => dup16(),
+        _ => todo!()
+    }    
 }
 
 
 impl Instruction {
     pub fn from_byte(value: u8) -> Self {
         value.into()
-
     }
 
     // Has to handle when it's a push or dup, otherwise easy 1-1 conversion
-    pub fn from_slice(bytes: &[u8]) -> Vec<Instruction> {
+    pub fn from_slice(bytes: &[u8]) -> Instruction {
        let instruction_byte = *bytes.first().unwrap();
-       let mut instrs = vec![];
+       
        if is_push(instruction_byte) {
         let push_size = push_size(instruction_byte);
-        
+        let push_val = &bytes[1..push_size as usize];
+        push_op(push_size, push_val)
        } else if is_dup(instruction_byte) {
-
+            let dup_size = dup_size(instruction_byte);
+            dup_op(dup_size)
        } else if is_swap(instruction_byte) {
-
+            let swap_size = swap_size(instruction_byte);
+            swap_op(swap_size)
        } else {
-
+            Instruction::from(instruction_byte)
        }
-
-       instrs
+       
     }
+
+
 }
+
+
+
 impl From<u8> for Instruction {
     fn from(value: u8) -> Self {
 
@@ -252,4 +363,42 @@ fn is_push_works() {
     for b in (0x80..0xff_u8) {
         assert!(!is_push(b));
     }
+}
+
+/**
+ * pragma solidity ^0.8.3;
+
+contract Counter {
+    uint public count;
+
+    // Function to get the current count
+    function get() public view returns (uint) {
+        return count;
+    }
+
+    // Function to increment count by 1
+    function inc() public {
+        count += 1;
+    }
+
+    // Function to decrement count by 1
+    function dec() public {
+        count -= 1;
+    }
+}
+ */
+#[test]
+fn can_parse_simple_pgm() {
+    const counter_sol_code: &'static str = "0x604260005260206000F3";
+
+    let expected = vec![
+        Instruction::Push1(bvi(0x42)),
+        Instruction::Push1(bvi(0)),
+        Instruction::MStore,
+        Instruction::Push1(bvi(0x42)),
+        Instruction::Push1(bvi(0)),
+        Instruction::Return
+    ];
+
+
 }
