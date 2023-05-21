@@ -3,7 +3,8 @@ use z3_ext::ast::{Ast, AstKind};
 use z3_ext::FuncDecl;
 use z3_ext::Sort;
 
-use crate::smt::ctx;
+use crate::random_bv_arg;
+use crate::smt::{ctx, BitVec};
 
 /**
     Note: Some of these functions in EVM have no arguments.
@@ -48,9 +49,9 @@ pub fn origin<'ctx>() -> FuncDecl<'ctx> {
     FuncDecl::new(ctx, "origin", &[], &Sort::bitvector(ctx, 256))
 }
 
-pub fn address<'ctx>() -> FuncDecl<'ctx> {
-    let ctx = ctx();
-    FuncDecl::new(ctx, "address", &[], &Sort::bitvector(ctx, 256))
+
+pub fn address() -> BitVec<20> {
+    random_bv_arg()
 }
 
 // Takes random bitvec as argument so that gas is not treated as a constant function.

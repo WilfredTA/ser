@@ -1,4 +1,5 @@
 use crate::smt::BitVec;
+use crate::storage::Address;
 
 use ruint::aliases::*;
 use ruint::Uint;
@@ -8,12 +9,14 @@ use z3_ext::ast::Bool;
 pub struct MachineRecord<const STACK_ITEM_SZ: u32> {
     pub mem: Option<MemChange>,
     pub stack: Option<StackChange<STACK_ITEM_SZ>>,
+    pub storage: Option<StorageChange>,
     pub pc: (usize, usize),
     pub constraints: Option<Bool<'static>>,
     pub halt: bool,
 }
 
 pub type Index = BitVec<32>;
+pub type Value = BitVec<32>;
 
 impl From<Index> for usize {
     fn from(idx: Index) -> Self {
@@ -67,6 +70,17 @@ impl<const SZ: u32> StackChange<SZ> {
             ops,
         }
     }
+}
+
+#[derive(Clone, Debug)]
+pub enum StorageOp {
+    Read {addr: Address, idx: Index},
+    Write {addr: Address, idx: Index, val: Value}
+}
+
+#[derive(Clone, Debug)]
+pub struct StorageChange {
+    pub log: Vec<StorageOp>,
 }
 
 pub fn push<const SZ: u32>(val: BitVec<SZ>) -> StackOp<SZ> {

@@ -28,6 +28,7 @@ impl MachineComponent for EvmState {
             stack,
             mem,
             constraints,
+            storage
         } = rec;
         if let Some(mem) = mem {
             self.memory.apply_change(mem);
@@ -65,6 +66,7 @@ impl<'ctx> EvmState {
             stack,
             mem,
             constraints,
+            storage
         } = rec;
         let mut new_state = self.clone();
         if let Some(stack_rec) = stack {

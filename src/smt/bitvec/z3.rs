@@ -15,6 +15,7 @@ impl<const SZ: u32> BitVec<SZ> {
         }
     }
 
+
     pub fn new_const(name: impl AsRef<str>) -> Self {
         let bv = BV::new_const(ctx(), name.as_ref(), SZ * 8);
         Self {

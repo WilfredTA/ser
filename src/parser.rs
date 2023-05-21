@@ -60,8 +60,9 @@ fn parse_push(bytes: &[u8]) -> (Instruction, u8, &[u8]) {
 
     let instruction_byte = *bytes.first().unwrap();
     let push_size = push_size(instruction_byte);
-
+    eprintln!("PUSH SIZE IS {}", push_size);
     let push_val = &bytes[1..(push_size + 1) as usize];
+    eprintln!("PUSH VAL IS {:#?}", push_val);
     (push_op(push_size, push_val),push_size, &bytes[(push_size) as usize..bytes.len()])
 }
 
@@ -112,18 +113,19 @@ fn push_size(b: u8) -> u8 {
 fn push_op(sz: u8, val: &[u8]) -> Instruction {
     let mut zero_len = 8 - val.len();
     let mut buf = vec![];
-    buf.extend_from_slice(val);
     for _ in (0..zero_len) {
         buf.push(0);
     }
+    buf.extend_from_slice(val);
+   
     let mut sliced = [0u8; 8];
     sliced.copy_from_slice(&buf);
+    let val = u64::from_be_bytes(sliced);
 
-    let val = u64::from_le_bytes(sliced);
     match sz {
         1 => push1(BitVec::<1>::new_literal(val)),
-        3 => push2(BitVec::<2>::new_literal(val)),
-        2 => push3(BitVec::<3>::new_literal(val)),
+        2 => push2(BitVec::<2>::new_literal(val)),
+        3 => push3(BitVec::<3>::new_literal(val)),
         4 => push4(BitVec::<4>::new_literal(val)),
         5 => push5(BitVec::<5>::new_literal(val)),
         6 => push6(BitVec::<6>::new_literal(val)),
@@ -255,13 +257,14 @@ impl From<u8> for Instruction {
             0x12 => Instruction::Slt,
             0x13 => Instruction::Sgt,
             0x14 => Instruction::Eq,
-            0x15 => Instruction::And,
-            0x16 => Instruction::Or,
-            0x17 => Instruction::Xor,
-            0x18 => Instruction::Not,
-            0x19 => Instruction::Byte,
-            0x1a => Instruction::Shl,
-            0x1b => Instruction::Shr,
+            0x15 => Instruction::IsZero,
+            0x16 => Instruction::And,
+            0x17 => Instruction::Or,
+            0x18 => Instruction::Xor,
+            0x19 => Instruction::Not,
+            0x1a => Instruction::Byte,
+            0x1b => Instruction::Shl,
+            0x1c => Instruction::Shr,
             0x20 => Instruction::Sha3,
             0x30 => Instruction::Address,
             0x31 => Instruction::Balance,
@@ -423,20 +426,69 @@ contract Counter {
  */
 #[test]
 fn can_parse_simple_pgm() {
-    const counter_sol_code: &'static str = "604260005260206000F3";
-    //const counter_sol_code: &'static str = "60426000F3";
-    let pgm = Parser::with_pgm(counter_sol_code).parse();
+    const counter_sol_code: &'static str = "604260005260206000610040F3";
     
+    let pgm = Parser::with_pgm(counter_sol_code).parse();
+    let sixty_four: BitVec<32> = bvi(0x0040);
+    eprintln!("SIXTY FOUR: {:#?}", sixty_four);
     let expected = vec![
         Instruction::Push1(bvi(0x42)),
         Instruction::Push1(bvi(0)),
         Instruction::MStore,
         Instruction::Push1(bvi(0x20)),
         Instruction::Push1(bvi(0)),
+        push2(bvi(0x0040)),
         Instruction::Return
     ];
 
     assert_eq!(expected, pgm);
 
 
+}
+
+#[test]
+fn can_parse_larger_pgm_with_storage() {
+    let pgm_raw = crate::test::COUNTER_WITH_STORAGE_MAPPING;
+    let pgm = Parser::with_pgm(pgm_raw).parse();
+
+    let expected_first_30 = vec![
+        push1(bvi(0x80)),
+        push1(bvi(0x40)),
+        Instruction::MStore,
+        Instruction::CallValue,
+        dup1(),
+        Instruction::IsZero,
+        push2(bvi(0x0010)),
+        jumpi(),
+        push1(bvi(0x00)),
+        dup1(),
+        Instruction::Revert,
+        Instruction::JumpDest,
+        Instruction::Pop,
+        push1(bvi(0x05)),
+        push1(bvi(0x00)),
+        dup1(),
+        push1(bvi(0x01)),
+        dup2(),
+        Instruction::MStore,
+        push1(bvi(0x20)),
+        Instruction::Add,
+        Instruction::Swap1,
+        dup2(),
+        Instruction::MStore,
+        push1(bvi(0x20)),
+        Instruction::Add,
+        push1(bvi(0x00)),
+        Instruction::Sha3,
+        dup2(),
+        Instruction::Swap1,
+        Instruction::SStore,
+        Instruction::Pop,
+        push2(bvi(0x0197))
+
+    ];
+
+
+    let pgm_first_30 = (&pgm[..33]).to_vec();
+    assert_eq!(expected_first_30, pgm_first_30);
 }

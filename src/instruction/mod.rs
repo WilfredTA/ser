@@ -9,6 +9,7 @@ use crate::state::env::*;
 use crate::state::evm::EvmState;
 use crate::traits::*;
 use crate::{
+    random_bv_arg,
     bvi,
     machine::Evm,
     memory::Memory,
@@ -17,13 +18,8 @@ use crate::{
 };
 
 use super::smt::*;
-use rand::Rng;
 
-pub fn random_bv_arg() -> BitVec<32> {
-    let mut rng = rand::thread_rng();
-    let rand_num: u64 = rng.gen();
-    BitVec::new_literal(rand_num)
-}
+
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Instruction {
@@ -183,6 +179,7 @@ fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
         pc: (mach.pc(), mach.pc() + 1),
         mem: Default::default(),
         halt: false,
+                    storage: None,
         constraints: None,
     }
 }
@@ -212,6 +209,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (pc, pc + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Mul => {
@@ -225,6 +223,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Sub => {
@@ -238,6 +237,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Div => {
@@ -251,6 +251,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::SDiv => {
@@ -264,6 +265,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::SMod => {
@@ -277,6 +279,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Mod => {
@@ -290,6 +293,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::AddMod => {
@@ -303,6 +307,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::MulMod => {
@@ -316,6 +321,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Exp => {
@@ -342,6 +348,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Lt => {
@@ -361,6 +368,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Gt => {
@@ -380,6 +388,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Slt => {
@@ -399,6 +408,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Sgt => {
@@ -418,6 +428,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Eq => {
@@ -437,6 +448,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::And => {
@@ -452,6 +464,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Or => {
@@ -467,6 +480,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Xor => {
@@ -482,6 +496,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Not => {
@@ -498,6 +513,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Byte => todo!(),
@@ -515,6 +531,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Shr => {
@@ -531,6 +548,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Sha3 => todo!(),
@@ -539,7 +557,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let stack = mach.stack();
                 let addr = stack.peek().unwrap();
                 let bal = balance()
-                    .apply(&[addr.as_ref(), random_bv_arg().as_ref()])
+                    .apply(&[addr.as_ref(), random_bv_arg::<32>().as_ref()])
                     .as_bv()
                     .unwrap();
                 let stack_diff = StackChange::with_ops(vec![pop(), push(bal.into())]);
@@ -550,6 +568,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Origin => {
@@ -563,6 +582,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Caller => {
@@ -576,6 +596,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::CallValue => {
@@ -589,6 +610,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::CallDataLoad => {
@@ -603,6 +625,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::CallDataSize => {
@@ -616,6 +639,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::CallDataCopy => todo!(),
@@ -632,6 +656,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::ExtCodeSize => {
@@ -646,6 +671,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::ExtCodeCopy => todo!(),
@@ -663,6 +689,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Coinbase => {
@@ -676,6 +703,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Timestamp => {
@@ -689,6 +717,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Number => todo!(),
@@ -703,6 +732,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::GasLimit => {
@@ -716,6 +746,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::ChainId => {
@@ -729,6 +760,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::SelfBalance => todo!(),
@@ -746,6 +778,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     mem: Default::default(),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::MLoad => {
@@ -763,6 +796,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     mem: Some(mem_change),
                     pc: (mach.pc(), mach.pc() + 1),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -787,6 +821,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_change),
                     constraints: None,
                     halt: false,
+                    storage: None,
                     pc: (mach.pc(), mach.pc() + 1),
                 }
             }
@@ -816,6 +851,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_change),
                     constraints: None,
                     halt: false,
+                    storage: None,
                     pc: (mach.pc(), mach.pc() + 1),
                 }
             }
@@ -843,6 +879,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: Some(cond),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::Pc => {
@@ -858,6 +895,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::MSize => {
@@ -872,6 +910,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     mem: Default::default(),
                     pc: (mach.pc(), mach.pc() + 1),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -887,6 +926,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -900,6 +940,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -913,6 +954,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -926,6 +968,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -939,6 +982,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -952,6 +996,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -965,6 +1010,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -978,6 +1024,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -991,6 +1038,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1004,6 +1052,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1017,6 +1066,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1030,6 +1080,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1043,6 +1094,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1056,6 +1108,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1069,6 +1122,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1082,6 +1136,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1095,6 +1150,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1108,6 +1164,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1121,6 +1178,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1134,6 +1192,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1147,6 +1206,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1160,6 +1220,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1173,6 +1234,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1186,6 +1248,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1199,6 +1262,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1212,6 +1276,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1225,6 +1290,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1238,6 +1304,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1251,6 +1318,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1264,6 +1332,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1277,6 +1346,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1288,6 +1358,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
@@ -1352,6 +1423,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (pc, pc + 1),
                     constraints: None,
                     halt: false,
+                    storage: None,
                 }
             }
             Instruction::IsZero => {
@@ -1369,6 +1441,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                     mem: Default::default(),
                     halt: false,
+                    storage: None,
                     constraints: None,
                 }
             }
