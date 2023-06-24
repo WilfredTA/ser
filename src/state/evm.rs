@@ -1,6 +1,6 @@
 use crate::machine::ExecBranch;
 use crate::state::tree::NodeId;
-use crate::storage::Address;
+use crate::storage::{Address, AccountStorage};
 use crate::traits::MachineState;
 use crate::{
     instruction::Instruction,
@@ -14,6 +14,7 @@ use z3_ext::ast::Bool;
 #[derive(Clone, Debug, Default)]
 pub struct EvmState {
     pub memory: Memory,
+    pub storage: AccountStorage,
     pub stack: Stack<32>,
     pub pc: usize,
     pub pgm: Vec<Instruction>,

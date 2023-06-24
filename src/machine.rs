@@ -11,7 +11,7 @@ use crate::instruction::*;
 use crate::memory::*;
 use crate::state::evm::EvmState;
 use crate::state::tree::{NodeId, StateTree};
-use crate::storage::Address;
+use crate::storage::{Address, AccountStorage};
 use crate::traits::{Machine, MachineComponent, MachineInstruction, MachineState};
 use crate::{
     bvc, bvi,
@@ -108,6 +108,7 @@ impl<'ctx> Evm<'ctx> {
             pc: 0,
             pgm: pgm.clone(),
             address: Address::default(),
+            storage: AccountStorage::default(),
         };
         Self {
             pgm,
@@ -278,6 +279,24 @@ impl MachineState<32> for EvmState {
     fn mem_apply(&mut self, mem_rec: MemChange) {
         self.memory.apply_change(mem_rec);
     }
+
+    fn storage(&self) -> &AccountStorage {
+        &self.storage
+    }
+
+    fn storage_write(&mut self, idx: Index, val: crate::storage::StorageValue) {
+        self.storage.sstore(idx, val);
+    }
+
+    fn storage_read(&self, idx: &Index) -> crate::storage::StorageValue {
+        self.storage.sload(idx)
+    }
+
+    fn storage_apply(&mut self, storage_rec: StorageChange) {
+        todo!()
+    }
+
+   
 }
 
 pub struct EvmExecutor<'ctx> {
