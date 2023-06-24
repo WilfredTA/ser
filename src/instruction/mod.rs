@@ -7,6 +7,7 @@ use z3_ext::ast::{Ast, Bool, BV};
 use crate::record::{push, MemChange, MemOp, StorageChange, StorageOp};
 use crate::state::env::*;
 use crate::state::evm::EvmState;
+use crate::storage::StorageValue;
 use crate::traits::*;
 use crate::{
     random_bv_arg,
@@ -855,7 +856,26 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pc: (mach.pc(), mach.pc() + 1),
                 }
             }
-            Instruction::SLoad => todo!(),
+            Instruction::SLoad => {
+                let key = mach.stack().peek().unwrap();
+                let storage = mach.storage_read(key);
+                let stack_op_1 = StackOp::Pop;
+                let StorageValue::BV(sval) = storage else {
+                    panic!("Arrays not yet supported");
+                };
+                let stack_op_2 = StackOp::Push(sval);
+                let stack_change = StackChange::with_ops(vec![stack_op_1, stack_op_2]);
+                MachineRecord {
+                    mem: None,
+                    stack: Some(stack_change),
+                    storage: Some(StorageChange {
+                        log: vec![StorageOp::Read { addr: mach.address.clone(), idx: key.clone() }],
+                    }),
+                    pc:(mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+            },
             Instruction::SStore => {
                 let key = mach.stack().peek().unwrap();
                 let val = mach.stack().peek_nth(1).unwrap();
