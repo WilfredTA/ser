@@ -1,5 +1,6 @@
 use crate::machine::ExecBranch;
 use crate::state::tree::NodeId;
+use crate::storage::Address;
 use crate::traits::MachineState;
 use crate::{
     instruction::Instruction,
@@ -16,6 +17,7 @@ pub struct EvmState {
     pub stack: Stack<32>,
     pub pc: usize,
     pub pgm: Vec<Instruction>,
+    pub address: Address
 }
 
 impl MachineComponent for EvmState {
