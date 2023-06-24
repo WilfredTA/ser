@@ -293,7 +293,7 @@ impl MachineState<32> for EvmState {
     }
 
     fn storage_apply(&mut self, storage_rec: StorageChange) {
-        todo!()
+        self.storage.apply_change(storage_rec);
     }
 
    
