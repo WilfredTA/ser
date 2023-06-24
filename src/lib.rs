@@ -9,6 +9,7 @@ pub mod smt;
 pub mod stack;
 pub mod state;
 pub mod traits;
+pub mod types;
 pub mod storage;
 pub mod parser;
 use paste::{expr, item, paste};
@@ -24,6 +25,14 @@ use rand::Rng;
 
 pub fn bvi<const SZ: u32>(val: impl Into<i32>) -> BitVec<SZ> {
     BitVec::new_literal(val.into() as u64)
+}
+
+pub fn bvi_32byte(val: u64) -> BitVec<32> {
+    BitVec::new_literal(val)
+}
+
+pub fn bvi_8byte(val: u64) -> BitVec<8> {
+    BitVec::new_literal(val)
 }
 pub fn bvc(val: impl AsRef<str>) -> BitVec<32> {
     BitVec::new_const(val)

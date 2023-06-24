@@ -8,7 +8,7 @@ use z3::ast::{Ast, BV};
 impl<const SZ: u32> BitVec<SZ> {
     pub fn new_literal(val: u64) -> Self {
         let ctx = ctx();
-        let bv = BV::from_u64(ctx, val, 256);
+        let bv = BV::from_u64(ctx, val, SZ * 8);
         Self {
             inner: BVType::Z3(bv),
             typ: Default::default(),
@@ -68,7 +68,7 @@ impl<const SZ: u32> AsRef<BV<'static>> for BitVec<SZ> {
 impl<const SZ: u32> SymbolicValue<BV<'static>, u64> for BitVec<SZ> {
     fn new_literal(val: u64) -> Self {
         let ctx = ctx();
-        let bv = BV::from_u64(ctx, val, 256);
+        let bv = BV::from_u64(ctx, val, SZ * 8);
         Self {
             inner: BVType::Z3(bv),
             typ: Default::default(),

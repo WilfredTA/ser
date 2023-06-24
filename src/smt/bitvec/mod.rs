@@ -33,7 +33,11 @@ impl<const SZ: u32> Hash for BitVec<SZ> {
         self.as_ref().hash(state);
         state.finish();
     }
+
+    
 }
+
+
 impl<const SZ: u32> BitVec<SZ> {
     pub fn with_bv(bv: BV<'static>) -> Self {
         Self {

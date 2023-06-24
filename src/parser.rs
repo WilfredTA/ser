@@ -426,9 +426,9 @@ contract Counter {
  */
 #[test]
 fn can_parse_simple_pgm() {
-    const counter_sol_code: &'static str = "604260005260206000610040F3";
+    const COUNTER_SOL_CODE: &'static str = "604260005260206000610040F3";
     
-    let pgm = Parser::with_pgm(counter_sol_code).parse();
+    let pgm = Parser::with_pgm(COUNTER_SOL_CODE).parse();
     let sixty_four: BitVec<32> = bvi(0x0040);
     eprintln!("SIXTY FOUR: {:#?}", sixty_four);
     let expected = vec![
