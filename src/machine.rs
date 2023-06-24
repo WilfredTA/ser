@@ -11,6 +11,7 @@ use crate::instruction::*;
 use crate::memory::*;
 use crate::state::evm::EvmState;
 use crate::state::tree::{NodeId, StateTree};
+use crate::storage::Address;
 use crate::traits::{Machine, MachineComponent, MachineInstruction, MachineState};
 use crate::{
     bvc, bvi,
@@ -106,6 +107,7 @@ impl<'ctx> Evm<'ctx> {
             stack: Default::default(),
             pc: 0,
             pgm: pgm.clone(),
+            address: Address::default(),
         };
         Self {
             pgm,
