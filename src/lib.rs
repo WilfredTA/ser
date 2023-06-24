@@ -9,7 +9,7 @@ pub mod smt;
 pub mod stack;
 pub mod state;
 pub mod traits;
-pub mod types;
+pub mod conversion;
 pub mod storage;
 pub mod parser;
 use paste::{expr, item, paste};

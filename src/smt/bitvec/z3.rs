@@ -24,46 +24,6 @@ impl<const SZ: u32> BitVec<SZ> {
         }
     }
 }
-impl<const SZ: u32> From<BV<'static>> for BitVec<SZ> {
-    fn from(bv: BV<'static>) -> Self {
-        let bit_sz = SZ * 8;
-        let bvsz = bv.get_size();
-        let bv = match bvsz.cmp(&bit_sz) {
-            Ordering::Less => bv.zero_ext(bit_sz - bvsz),
-            Ordering::Equal => bv,
-            Ordering::Greater => bv.extract(bit_sz, 0),
-        };
-        // let bv = if bvsz < bit_sz {
-        //     bv.zero_ext(bit_sz - bvsz)
-        // } else if bvsz > bit_sz {
-        //     bv.extract(bit_sz, 0)
-        // } else {
-        //     bv
-        // };
-        Self {
-            inner: BVType::Z3(bv),
-            typ: Default::default(),
-        }
-    }
-}
-
-impl<const SZ: u32> From<BitVec<SZ>> for BV<'static> {
-    fn from(bv: BitVec<SZ>) -> Self {
-        match bv.inner {
-            BVType::Z3(bv) => bv,
-            _ => panic!("Should never happen"),
-        }
-    }
-}
-
-impl<const SZ: u32> AsRef<BV<'static>> for BitVec<SZ> {
-    fn as_ref(&self) -> &BV<'static> {
-        match &self.inner {
-            BVType::Z3(bv) => bv,
-            _ => panic!("Should never happen"),
-        }
-    }
-}
 
 impl<const SZ: u32> SymbolicValue<BV<'static>, u64> for BitVec<SZ> {
     fn new_literal(val: u64) -> Self {
