@@ -4,7 +4,7 @@ use std::ops::{BitAnd, BitOr, BitXor};
 use ruint::aliases::U256;
 use z3_ext::ast::{Ast, Bool, BV};
 
-use crate::record::{push, MemChange, MemOp};
+use crate::record::{push, MemChange, MemOp, StorageChange, StorageOp};
 use crate::state::env::*;
 use crate::state::evm::EvmState;
 use crate::traits::*;
@@ -856,7 +856,29 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 }
             }
             Instruction::SLoad => todo!(),
-            Instruction::SStore => todo!(),
+            Instruction::SStore => {
+                let key = mach.stack().peek().unwrap();
+                let val = mach.stack().peek_nth(1).unwrap();
+
+                let stack_rec = StackChange {
+                    pop_qty: 2,
+                    push_qty: 0,
+                    ops: vec![StackOp::Pop, StackOp::Pop]
+                };
+                let storage_change = StorageChange {
+                    log: vec![StorageOp::Write { addr: mach.address.clone(), idx: key.clone(), val: val.clone() }],
+                };
+
+                MachineRecord {
+                    stack: Some(stack_rec),
+                    mem: None,
+                    storage: Some(storage_change),
+                    pc: (mach.pc(), mach.pc() + 1),
+                    constraints: None,
+                    halt: false,
+                }
+          
+            },
             Instruction::Jump => todo!(),
             Instruction::JumpI => {
                 let jump_dest = mach.stack().peek().unwrap();
