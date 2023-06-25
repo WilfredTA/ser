@@ -17,10 +17,16 @@ impl MachineComponent for Memory {
     type Record = MemChange;
 
     fn apply_change(&mut self, rec: Self::Record) {
+       
         let MemChange { ops_log } = rec;
         let mut highest_idx = self.highest_idx;
         ops_log.into_iter().for_each(|op| match op {
             MemOp::Write { val, idx } => {
+                let mut val = val;
+                val.simplify();
+                let mut idx = idx;
+                idx.simplify();
+                eprintln!("MEM WRITE FOR MEM APPLY: idx: {:#?}, value: {:#?}", idx, val);
                 let idx_cmp: usize = idx.clone().into();
                 if idx_cmp > highest_idx {
                     highest_idx = idx_cmp;

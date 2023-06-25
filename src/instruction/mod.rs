@@ -603,7 +603,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::CallValue => {
                 let stack = mach.stack();
                 let call_val = call_value().apply(&[]).as_bv().unwrap();
-                let stack_diff = StackChange::with_ops(vec![pop(), push(call_val.into())]);
+                let stack_diff = StackChange::with_ops(vec![push(call_val.into())]);
 
                 MachineRecord {
                     stack: Some(stack_diff),
@@ -1448,7 +1448,16 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::DelegateCall => todo!(),
             Instruction::Create2 => todo!(),
             Instruction::StaticCall => todo!(),
-            Instruction::Revert => todo!(),
+            Instruction::Revert => {
+                MachineRecord {
+                    mem: None,
+                    stack: None,
+                    storage: None,
+                    pc: (mach.pc(), mach.pc()),
+                    constraints: None,
+                    halt: true,
+                }
+            },
             Instruction::Invalid => todo!(),
             Instruction::SelfDestruct => todo!(),
             Instruction::SignExtend => todo!(),
@@ -1491,7 +1500,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     }
 }
 
-pub fn pop<const SZ: u32>() -> StackOp<SZ> {
+pub fn pop<const SZ: usize>() -> StackOp<SZ> {
     StackOp::Pop
 }
 pub fn add() -> Instruction {
@@ -1553,7 +1562,7 @@ pub fn dup15() -> Instruction {
 pub fn dup16() -> Instruction {
     Instruction::Dup16
 }
-// pub fn push<const SZ: u32>(size: usize, val: BitVec<>) -> Instruction {
+// pub fn push<const SZ: usize>(size: usize, val: BitVec<>) -> Instruction {
 //     Instruction::Push5(BitVec::default())
 // }
 

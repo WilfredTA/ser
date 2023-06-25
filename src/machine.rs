@@ -124,7 +124,7 @@ impl<'ctx> Evm<'ctx> {
         }
     }
 
-    fn exec_check(&mut self) -> Vec<(ExecBranch, Option<Model<'ctx>>)> {
+    pub fn exec_check(&mut self) -> Vec<(ExecBranch, Option<Model<'ctx>>)> {
         let evm_trace = self.exec();
         let mut solver = z3_ext::Solver::new(ctx());
         evm_trace

@@ -8,7 +8,7 @@ use crate::state::evm::EvmState;
 use crate::storage::{AccountStorage, StorageValue};
 use z3_ext::ast::Bool;
 
-pub trait MachineState<const STACK_ITEM_SZ: u32> {
+pub trait MachineState<const STACK_ITEM_SZ: usize> {
     type PC;
 
     fn pc(&self) -> Self::PC;
@@ -26,7 +26,7 @@ pub trait MachineState<const STACK_ITEM_SZ: u32> {
     fn storage_apply(&mut self, storage_rec: StorageChange);
 }
 
-pub trait Machine<const STACK_ITEM_SZ: u32> {
+pub trait Machine<const STACK_ITEM_SZ: usize> {
     type State: MachineState<STACK_ITEM_SZ>;
 
     // All possible final states
@@ -37,7 +37,7 @@ pub trait Machine<const STACK_ITEM_SZ: u32> {
     fn state_ref_mut(&mut self) -> &mut Self::State;
 }
 
-pub trait MachineInstruction<'ctx, const SZ: u32> {
+pub trait MachineInstruction<'ctx, const SZ: usize> {
     fn exec(&self, mach: &EvmState) -> MachineRecord<SZ>;
 }
 

@@ -54,6 +54,7 @@ impl<'ctx> EvmState {
 
     pub fn exec_once(mut self) -> (ExecBranch<'ctx>, Option<ExecBranch<'ctx>>) {
         let inst = self.curr_instruction();
+        eprintln!("CURRENT INSTRUCTION: {:#?} at pc: {}", inst, self.pc);
         let change = inst.exec(&self);
 
         self.state_transition(change)
@@ -72,6 +73,9 @@ impl<'ctx> EvmState {
             storage
         } = rec;
         let mut new_state = self.clone();
+        if halt {
+            return ((new_state, vec![]), None);
+        }
         if let Some(stack_rec) = stack {
             new_state.stack_apply(stack_rec);
         }

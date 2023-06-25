@@ -3,10 +3,11 @@ use crate::storage::Address;
 
 use ruint::aliases::*;
 use ruint::Uint;
+use z3_ext::ast::Ast;
 use z3_ext::ast::Bool;
 
 #[derive(Clone, Debug)]
-pub struct MachineRecord<const STACK_ITEM_SZ: u32> {
+pub struct MachineRecord<const STACK_ITEM_SZ: usize> {
     pub mem: Option<MemChange>,
     pub stack: Option<StackChange<STACK_ITEM_SZ>>,
     pub storage: Option<StorageChange>,
@@ -34,19 +35,19 @@ pub enum MemOp {
     Read { idx: Index },
 }
 #[derive(Clone, Debug)]
-pub enum StackOp<const SZ: u32> {
+pub enum StackOp<const SZ: usize> {
     Push(BitVec<SZ>),
     Pop,
 }
 
 #[derive(Default, Clone, Debug)]
-pub struct StackChange<const SZ: u32> {
+pub struct StackChange<const SZ: usize> {
     pub pop_qty: u64,
     pub push_qty: u64,
     pub ops: Vec<StackOp<SZ>>,
 }
 
-impl<const SZ: u32> StackChange<SZ> {
+impl<const SZ: usize> StackChange<SZ> {
     pub fn push(val: BitVec<SZ>) -> Self {
         Self {
             pop_qty: 0,
@@ -83,6 +84,6 @@ pub struct StorageChange {
     pub log: Vec<StorageOp>,
 }
 
-pub fn push<const SZ: u32>(val: BitVec<SZ>) -> StackOp<SZ> {
+pub fn push<const SZ: usize>(val: BitVec<SZ>) -> StackOp<SZ> {
     StackOp::Push(val)
 }

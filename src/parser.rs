@@ -3,6 +3,7 @@ use revm::{
     opcode::OpCode, OPCODE_JUMPMAP
 };
 use hex::{decode};
+use ruint::Uint;
 pub struct Parser<'a> {
     pgm: &'a str
 }
@@ -56,14 +57,27 @@ impl<'a> Parser<'a> {
 }
 
 // Returns instruction + any left over bytes in the slice after extracting the opcode & opcode args
-fn parse_push(bytes: &[u8]) -> (Instruction, u8, &[u8]) {
+fn parse_push(bytes: &[u8]) -> (Instruction, u8, Vec<u8>) {
 
     let instruction_byte = *bytes.first().unwrap();
     let push_size = push_size(instruction_byte);
     eprintln!("PUSH SIZE IS {}", push_size);
-    let push_val = &bytes[1..(push_size + 1) as usize];
-    eprintln!("PUSH VAL IS {:#?}", push_val);
-    (push_op(push_size, push_val),push_size, &bytes[(push_size) as usize..bytes.len()])
+    eprintln!("Bytes len is {}", bytes.len());
+    if bytes.len() - 1 < push_size as usize {
+        let pad_len = push_size as usize - bytes.len() + 1;
+        eprintln!("pad len: {}", pad_len);
+        let mut new_bytes = bytes.to_vec();
+        for _ in (0..pad_len) {
+            new_bytes.push(0);
+        }
+        let push_val = &new_bytes[1..(push_size + 1) as usize];
+        (push_op(push_size, push_val),push_size, new_bytes[(push_size) as usize..new_bytes.len()].to_vec())
+    } else {
+        let push_val = &bytes[1..(push_size + 1) as usize];
+        eprintln!("PUSH VAL IS {:#?}", push_val);
+        (push_op(push_size, push_val),push_size, bytes[(push_size) as usize..bytes.len()].to_vec())
+    }
+
 }
 
 fn parse_dup(byte: u8) -> Instruction {
@@ -109,52 +123,179 @@ fn push_size(b: u8) -> u8 {
     }
 }
 
+// Add zeroes to the left side of a byte array until the byte array is a certain
+pub fn zero_extend<const SZ: usize>(bytes: &[u8]) -> [u8; SZ] {
+    let mut extended_bytes: [u8; SZ] = [0u8; SZ];
+    if bytes.len() < SZ {
+        let pad_size = SZ - bytes.len();
+        let last_idx = SZ - 1;
+        let start_idx = last_idx - (bytes.len() - 1);
+        extended_bytes[start_idx..].clone_from_slice(&bytes);
+        let padding_len = SZ - bytes.len();
+        for i in (0..pad_size - 1) {
+            extended_bytes[i] = 0;
+        }
+
+
+    } else {
+        extended_bytes.copy_from_slice(bytes);
+    }
+    extended_bytes
+        
+    
+}
+
+
 
 fn push_op(sz: u8, val: &[u8]) -> Instruction {
-    let mut zero_len = 8 - val.len();
-    let mut buf = vec![];
-    for _ in (0..zero_len) {
-        buf.push(0);
-    }
-    buf.extend_from_slice(val);
+    
+    // let val = if val.len() < 8 {
+    //     let mut zero_len = if val.len() < 8 {8 - val.len()} else {0};
+    //     let mut buf = vec![];
+    //     for _ in (0..zero_len) {
+    //         buf.push(0);
+    //     }
+    //     buf.extend_from_slice(val);
+       
+    //     let mut sliced = [0u8; 8];
+    //     sliced.copy_from_slice(&buf);
+    //     u64::from_be_bytes(sliced)
+    // } else {
+    //     let mut buf = vec![];
+    //     buf.copy_from_slice()
+    //     u64::from_be_bytes(val)
+    // };
    
-    let mut sliced = [0u8; 8];
-    sliced.copy_from_slice(&buf);
-    let val = u64::from_be_bytes(sliced);
 
     match sz {
-        1 => push1(BitVec::<1>::new_literal(val)),
-        2 => push2(BitVec::<2>::new_literal(val)),
-        3 => push3(BitVec::<3>::new_literal(val)),
-        4 => push4(BitVec::<4>::new_literal(val)),
-        5 => push5(BitVec::<5>::new_literal(val)),
-        6 => push6(BitVec::<6>::new_literal(val)),
-        7 => push7(BitVec::<7>::new_literal(val)),
-        8 => push8(BitVec::<8>::new_literal(val)),
-        9 => push9(BitVec::<9>::new_literal(val)),
-        10 => push10(BitVec::<10>::new_literal(val)),
-        11 => push11(BitVec::<11>::new_literal(val)),
-        12 => push12(BitVec::<12>::new_literal(val)),
-        13 => push13(BitVec::<13>::new_literal(val)),
-        14 => push14(BitVec::<14>::new_literal(val)),
-        15 => push15(BitVec::<15>::new_literal(val)),
-        16 => push16(BitVec::<16>::new_literal(val)),
-        17 => push17(BitVec::<17>::new_literal(val)),
-        18 => push18(BitVec::<18>::new_literal(val)),
-        19 => push19(BitVec::<19>::new_literal(val)),
-        20 => push20(BitVec::<20>::new_literal(val)),
-        21 => push21(BitVec::<21>::new_literal(val)),
-        21 => push22(BitVec::<22>::new_literal(val)),
-        23 => push23(BitVec::<23>::new_literal(val)),
-        24 => push24(BitVec::<24>::new_literal(val)),
-        25 => push25(BitVec::<25>::new_literal(val)),
-        26 => push26(BitVec::<26>::new_literal(val)),
-        27 => push27(BitVec::<27>::new_literal(val)),
-        28 => push28(BitVec::<28>::new_literal(val)),
-        29 => push29(BitVec::<29>::new_literal(val)),
-        30 => push30(BitVec::<30>::new_literal(val)),
-        31 => push31(BitVec::<31>::new_literal(val)),
-        32 => push32(BitVec::<32>::new_literal(val)),
+        1 => {
+            let val = zero_extend::<1>(val);
+            push1(val.into())
+        },
+        2 => {
+            let val = zero_extend::<2>(val).into();
+            push2(val)
+        },
+        3 => {
+            let val = zero_extend::<3>(val).into();
+            push3(val)
+        },
+        4 => {
+            let val = zero_extend::<4>(val).into(); 
+            push4(val)
+        },
+        5 => { 
+            let val = zero_extend::<5>(val).into();
+            push5(val)
+        },
+        6 => { 
+            let val = zero_extend::<6>(val).into();
+            push6(val)
+        },
+        7 => { 
+            let val = zero_extend::<7>(val).into();
+            push7(val)
+        },
+        8 => { 
+            let val = zero_extend::<8>(val).into();
+            push8(val)
+        },
+        9 => { 
+            let val = zero_extend::<9>(val).into();
+            push9(val)
+        },
+        10 => { 
+            let val = zero_extend::<10>(val).into();
+            push10(val)
+        },
+        11 => { 
+            let val = zero_extend::<11>(val).into();
+            push11(val)
+        },
+        12 => { 
+            let val = zero_extend::<12>(val).into();
+            push12(val)
+        },
+        13 => { 
+            let val = zero_extend::<13>(val).into();
+            push13(val)
+        },
+        14 => { 
+            let val = zero_extend::<14>(val).into();
+            push14(val)
+        },
+        15 => { 
+            let val = zero_extend::<15>(val).into();
+            push15(val)
+        },
+        16 => { 
+            let val = zero_extend::<16>(val).into();
+            push16(val)
+        },
+        17 => { 
+            let val = zero_extend::<17>(val).into();
+            push17(val)
+        },
+        18 => { 
+            let val = zero_extend::<18>(val).into();
+            push18(val)
+        },
+        19 => { 
+            let val = zero_extend::<19>(val).into();
+            push19(val)
+        },
+        20 => { 
+            let val = zero_extend::<20>(val).into();
+            push20(val)
+        },
+        21 => { 
+            let val = zero_extend::<21>(val).into();
+            push21(val)
+        },
+        21 => { 
+            let val = zero_extend::<22>(val).into();
+            push22(val)
+        },
+        23 => { 
+            let val = zero_extend::<23>(val).into();
+            push23(val)
+        },
+        24 => { 
+            let val = zero_extend::<24>(val).into();
+            push24(val)
+        },
+        25 => { 
+            let val = zero_extend::<25>(val).into();
+            push25(val)
+        },
+        26 => { 
+            let val = zero_extend::<26>(val).into();
+            push26(val)
+        },
+        27 => { 
+            let val = zero_extend::<27>(val).into();
+            push27(val)
+        },
+        28 => { 
+            let val = zero_extend::<28>(val).into();
+            push28(val)
+        },
+        29 => { 
+            let val = zero_extend::<29>(val).into();
+            push29(val)
+        },
+        30 => { 
+            let val = zero_extend::<30>(val).into();
+            push30(val)
+        },
+        31 => { 
+            let val = zero_extend::<31>(val).into();
+            push31(val)
+        },
+        32 => { 
+            let val = zero_extend::<32>(val).into();
+            push32(val)
+        },
         _ => {
             todo!()
         }

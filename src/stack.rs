@@ -9,18 +9,19 @@ use z3_ext::{
     Config,
 };
 #[derive(Default, Debug, Clone)]
-pub struct Stack<const SZ: u32> {
+pub struct Stack<const SZ: usize> {
     stack: SmallVec<[BitVec<SZ>; 1024]>,
     size: usize,
 }
 
-impl<const SZ: u32> Stack<SZ> {
+impl<const SZ: usize> Stack<SZ> {
     pub fn push(&mut self, val: BitVec<SZ>) {
         self.size += 1;
         self.stack.push(val);
     }
 
     pub fn pop(&mut self) -> BitVec<SZ> {
+        eprintln!("STACK SIZE: {} AND STACK TOP {:#?}", self.size, self.peek());
         self.size -= 1;
         self.stack.pop().unwrap()
     }
@@ -50,7 +51,7 @@ impl<const SZ: u32> Stack<SZ> {
     }
 }
 
-impl<const SZ: u32> MachineComponent for Stack<SZ> {
+impl<const SZ: usize> MachineComponent for Stack<SZ> {
     type Record = StackChange<SZ>;
 
     fn apply_change(&mut self, rec: Self::Record) {
