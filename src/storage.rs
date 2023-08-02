@@ -1,17 +1,15 @@
-use std::collections::HashMap;
-use crate::{instruction::Instruction,traits::{MachineComponent}, record::{StorageChange, StorageOp}};
-use z3_ext::{
-    ast::{
-        BV, Ast, Array
-    }
+use crate::{
+    instruction::Instruction,
+    record::{StorageChange, StorageOp},
+    traits::MachineComponent,
 };
+use std::collections::HashMap;
+use z3_ext::ast::{Array, Ast, BV};
 
+use crate::smt::{ctx, BitVec};
 use crate::{bvc, bvi};
-use crate::smt::{BitVec, ctx};
 
-fn make_storage_arr() {
-
-}
+fn make_storage_arr() {}
 #[derive(Debug, Clone, Default)]
 pub struct AccountStorage {
     inner: HashMap<BitVec<32>, StorageValue>,
@@ -21,7 +19,7 @@ pub struct AccountStorage {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum StorageValue {
     Array(Array<'static>),
-    BV(BitVec<32>)
+    BV(BitVec<32>),
 }
 
 impl Default for StorageValue {
@@ -44,12 +42,11 @@ impl AccountStorage {
     }
 }
 
-
 pub type Address = BitVec<20>;
 
 #[derive(Debug, Clone, Default)]
 pub struct GlobalStorage {
-    inner: HashMap<Address, AccountStorage>
+    inner: HashMap<Address, AccountStorage>,
 }
 
 impl GlobalStorage {
@@ -84,31 +81,53 @@ impl MachineComponent for GlobalStorage {
     fn apply_change(&mut self, rec: Self::Record) {
         let StorageChange { log } = rec;
         let mut addr_record_map = HashMap::new();
-        log.iter().for_each(|op| {
-            match op {
-                crate::record::StorageOp::Read { idx, addr } => {
-                    addr_record_map.entry(addr)
-                        .and_modify(|logs: &mut Vec<StorageOp>| logs.push(StorageOp::Read {idx: idx.clone(), addr: addr.clone()}))
-                        .or_insert(vec![StorageOp::Read{idx: idx.clone(), addr: addr.clone()}]);
-                },
-                crate::record::StorageOp::Write { addr, idx, val } => {
-                    addr_record_map.entry(addr)
-                    .and_modify(|logs: &mut Vec<StorageOp>| logs.push(StorageOp::Write {idx: idx.clone(), addr: addr.clone(), val: val.clone()}))
-                    .or_insert(vec![StorageOp::Write {idx: idx.clone(), addr: addr.clone(), val: val.clone()}]);
-              
-                },
+        log.iter().for_each(|op| match op {
+            crate::record::StorageOp::Read { idx, addr } => {
+                addr_record_map
+                    .entry(addr)
+                    .and_modify(|logs: &mut Vec<StorageOp>| {
+                        logs.push(StorageOp::Read {
+                            idx: idx.clone(),
+                            addr: addr.clone(),
+                        })
+                    })
+                    .or_insert(vec![StorageOp::Read {
+                        idx: idx.clone(),
+                        addr: addr.clone(),
+                    }]);
+            }
+            crate::record::StorageOp::Write { addr, idx, val } => {
+                addr_record_map
+                    .entry(addr)
+                    .and_modify(|logs: &mut Vec<StorageOp>| {
+                        logs.push(StorageOp::Write {
+                            idx: idx.clone(),
+                            addr: addr.clone(),
+                            val: val.clone(),
+                        })
+                    })
+                    .or_insert(vec![StorageOp::Write {
+                        idx: idx.clone(),
+                        addr: addr.clone(),
+                        val: val.clone(),
+                    }]);
             }
         });
-        addr_record_map.into_iter().for_each(|(address, storage_ops_log)| {
-            let change = StorageChange{log: storage_ops_log};
-            self.inner.entry(address.clone())
-                .and_modify(|account| account.apply_change(change.clone()))
-                .or_insert_with( || {
-                    let mut new_acc = AccountStorage::default();
-                    new_acc.apply_change(change);
-                    new_acc
-                });
-        })
+        addr_record_map
+            .into_iter()
+            .for_each(|(address, storage_ops_log)| {
+                let change = StorageChange {
+                    log: storage_ops_log,
+                };
+                self.inner
+                    .entry(address.clone())
+                    .and_modify(|account| account.apply_change(change.clone()))
+                    .or_insert_with(|| {
+                        let mut new_acc = AccountStorage::default();
+                        new_acc.apply_change(change);
+                        new_acc
+                    });
+            })
     }
 }
 
@@ -116,15 +135,13 @@ impl MachineComponent for AccountStorage {
     type Record = StorageChange;
     fn apply_change(&mut self, rec: Self::Record) {
         let StorageChange { log } = rec;
-        log.into_iter().for_each(|op| {
-            match op {
-                crate::record::StorageOp::Read { idx, addr } => {
-                    self.touched.insert(idx, true);
-                },
-                crate::record::StorageOp::Write { addr, idx, val } => {
-                    self.touched.insert(idx.clone(), true);
-                    self.inner.insert(idx, StorageValue::BV(val));
-                },
+        log.into_iter().for_each(|op| match op {
+            crate::record::StorageOp::Read { idx, addr } => {
+                self.touched.insert(idx, true);
+            }
+            crate::record::StorageOp::Write { addr, idx, val } => {
+                self.touched.insert(idx.clone(), true);
+                self.inner.insert(idx, StorageValue::BV(val));
             }
         })
     }
@@ -136,8 +153,10 @@ fn test_basic_lookup_works_in_acc_storage() {
     let mut acc_store = AccountStorage::default();
     acc_store.sstore(bvi(5), StorageValue::BV(bvc("val_at_idx_5")));
 
-
-    assert_eq!(acc_store.sload(&bvi(5)), StorageValue::BV(bvc("val_at_idx_5")));
+    assert_eq!(
+        acc_store.sload(&bvi(5)),
+        StorageValue::BV(bvc("val_at_idx_5"))
+    );
 }
 
 #[test]
@@ -150,22 +169,20 @@ fn test_basic_lookup_global_storage() {
     addr_2_storage.sstore(bvi(3), StorageValue::BV(bvc("storage_val_at_idx_3")));
     global.inner.insert(addr2.clone(), addr_2_storage);
 
-    assert_eq!(global.get(&addr2).sload(&bvi(3)), StorageValue::BV(bvc("storage_val_at_idx_3")));
-
+    assert_eq!(
+        global.get(&addr2).sload(&bvi(3)),
+        StorageValue::BV(bvc("storage_val_at_idx_3"))
+    );
 }
 
 #[test]
-fn test_storage_with_solidity_mapping() {
-
-}
-
+fn test_storage_with_solidity_mapping() {}
 
 // Storage keys must be concrete
 // However, values can be symbolic
 // In the case of compound structures like mappings, the following
- // Global Storage:
- // HashMap(Address -> AccountStorage)
- // AccountStorage(BitVec<32> -> StorageValue)
- // StorageValue(ConcreteBytes<32> OR SymbolicBytes<32>)
- //
- 
+// Global Storage:
+// HashMap(Address -> AccountStorage)
+// AccountStorage(BitVec<32> -> StorageValue)
+// StorageValue(ConcreteBytes<32> OR SymbolicBytes<32>)
+//

@@ -49,7 +49,6 @@ pub fn origin<'ctx>() -> FuncDecl<'ctx> {
     FuncDecl::new(ctx, "origin", &[], &Sort::bitvector(ctx, 256))
 }
 
-
 pub fn address() -> BitVec<20> {
     random_bv_arg()
 }

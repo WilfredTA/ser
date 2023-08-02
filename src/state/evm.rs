@@ -1,6 +1,6 @@
 use crate::machine::ExecBranch;
 use crate::state::tree::NodeId;
-use crate::storage::{Address, AccountStorage};
+use crate::storage::{AccountStorage, Address};
 use crate::traits::MachineState;
 use crate::{
     instruction::Instruction,
@@ -16,7 +16,7 @@ pub struct EvmState {
     pub memory: Memory,
     pub storage: AccountStorage,
     pub stack: Stack<32>,
-     pc: usize,
+    pc: usize,
     pub pgm: Vec<Instruction>,
     pub address: Address,
     pub halt: bool,
@@ -32,7 +32,7 @@ impl MachineComponent for EvmState {
             stack,
             mem,
             constraints,
-            storage
+            storage,
         } = rec;
         if let Some(mem) = mem {
             self.memory.apply_change(mem);
@@ -46,7 +46,6 @@ impl MachineComponent for EvmState {
 }
 
 impl<'ctx> EvmState {
-
     pub fn with_pgm(pgm: Vec<Instruction>) -> Self {
         Self {
             pgm,
@@ -72,10 +71,16 @@ impl<'ctx> EvmState {
     }
     pub fn curr_instruction(&self) -> Instruction {
         if !self.can_continue() {
-            eprintln!("EVM STATE CANNOT CONTINUE; BUT CURR INST IS REQUESTED: {:#?}", self);
-            eprintln!("Getting curr inst.. curr pc: {} and curr pgm len: {}", self.pc, self.pgm.len());
+            eprintln!(
+                "EVM STATE CANNOT CONTINUE; BUT CURR INST IS REQUESTED: {:#?}",
+                self
+            );
+            eprintln!(
+                "Getting curr inst.. curr pc: {} and curr pgm len: {}",
+                self.pc,
+                self.pgm.len()
+            );
         }
         self.pgm.get(self.pc).cloned().unwrap()
     }
-
 }

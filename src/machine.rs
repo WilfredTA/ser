@@ -12,7 +12,7 @@ use crate::instruction::*;
 use crate::memory::*;
 use crate::state::evm::EvmState;
 use crate::state::tree::{NodeId, StateTree};
-use crate::storage::{Address, AccountStorage};
+use crate::storage::{AccountStorage, Address};
 use crate::traits::{Machine, MachineComponent, MachineInstruction, MachineState};
 use crate::{
     bvc, bvi,
@@ -54,15 +54,12 @@ impl ExecutionSummary {
     }
 }
 
-
-
 pub type ExecBranch<'ctx> = (EvmState, Vec<Bool<'ctx>>);
 
 pub struct TransactionContext {
     calldata: Option<Vec<u8>>,
     output: Option<Vec<u8>>,
-    storage: HashMap<usize, [u8; 256]>
-
+    storage: HashMap<usize, [u8; 256]>,
 }
 
 // The Evm is an *implementation* of the Machine trait
@@ -99,14 +96,12 @@ impl<'ctx> Evm<'ctx> {
     pub fn set_init_state(&mut self, state: EvmState) {
         self.states.val = state;
     }
-
-   
 }
 
 impl<'ctx> Evm<'ctx> {
     pub fn new(pgm: Vec<Instruction>) -> Self {
         let evm_state = EvmState::with_pgm(pgm.clone());
-        
+
         Self {
             pgm,
             states: StateTree {
@@ -169,14 +164,18 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         step_recs.push(first_step);
         loop {
             if let Some(step) = step_recs.pop() {
-                eprintln!("HALTED LEFT: {}, HALTED RIGHT: {}", step.halted_left(), step.halted_right());
+                eprintln!(
+                    "HALTED LEFT: {}, HALTED RIGHT: {}",
+                    step.halted_left(),
+                    step.halted_right()
+                );
                 if !step.halted_right() {
                     let continue_from_right = step.right_id();
                     if let Some(right_id) = continue_from_right {
                         let nxt_right_step = exec.step_from_mut(right_id);
                         step_recs.push(nxt_right_step);
                     }
-                } 
+                }
                 if !step.halted_left() {
                     let continue_from_left = step.left_id();
                     if let Some(left_id) = continue_from_left {
@@ -327,8 +326,6 @@ impl MachineState<32> for EvmState {
     fn storage_apply(&mut self, storage_rec: StorageChange) {
         self.storage.apply_change(storage_rec);
     }
-
-   
 }
 
 pub struct EvmExecutor<'ctx> {
@@ -360,27 +357,18 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
     let exec_tree = &execution.states;
     let final_states = exec_tree.leaves();
     assert_eq!(2, final_states.len());
-    assert_eq!(final_states.first().unwrap().val.stack().peek_nth(1).cloned().unwrap(), bvi(100));
+    assert_eq!(
+        final_states
+            .first()
+            .unwrap()
+            .val
+            .stack()
+            .peek_nth(1)
+            .cloned()
+            .unwrap(),
+        bvi(100)
+    );
     eprintln!("Final states: {:#?}", final_states);
-    // {
-    //     let sat_branches = evm.exec_check();
-    //     assert!(
-    //         sat_branches.first().is_some()
-    //             && sat_branches
-    //                 .first()
-    //                 .unwrap()
-    //                 .0
-    //                  .0
-    //                 .stack()
-    //                 .peek_nth(1)
-    //                 .cloned()
-    //                 .unwrap()
-    //                 == bvi(100)
-    //     );
-
-    //     assert_eq!(sat_branches.len(), 1);
-    // }
-    // eprintln!("STATES > {:#?}", evm.states);
 }
 
 #[test]

@@ -1,22 +1,27 @@
 use std::cmp::Ordering;
 
-use ruint::{uint, Uint, ToUintError, FromUintError, Bits};
-use rlp::{Encodable, Decodable};
-use z3_ext::{ast::Ast, Context};
+use crate::{
+    bvc, bvi, bvi_8byte, ctx,
+    instruction::{push32, Instruction},
+    parser::zero_extend,
+    record::push,
+    BVType, BitVec, BV,
+};
+use rlp::{Decodable, Encodable};
+use ruint::{uint, Bits, FromUintError, ToUintError, Uint};
 use serde::{Deserialize, Serialize};
-use crate::{BV, BVType, BitVec, bvc, bvi, ctx, bvi_8byte, parser::zero_extend, record::push, instruction::{push32, Instruction}};
+use z3_ext::{ast::Ast, Context};
 
 impl From<Uint<256, 4>> for BitVec<32> {
     fn from(value: Uint<256, 4>) -> Self {
-       let mut bv: BV<'static> = BV::from_u64(ctx(), 0, 8);
-       let bytes: [u8; 32] = value.clone().to_be_bytes();
+        let mut bv: BV<'static> = BV::from_u64(ctx(), 0, 8);
+        let bytes: [u8; 32] = value.clone().to_be_bytes();
 
-       for i in bytes.iter() {
-           let new_bv: BV<'static> = bvi::<1>(*i).into();
-           bv = bv.concat(&new_bv).simplify();
-       }
-       bv.extract(256 - 8 - 1, 0).simplify().into()
-
+        for i in bytes.iter() {
+            let new_bv: BV<'static> = bvi::<1>(*i).into();
+            bv = bv.concat(&new_bv).simplify();
+        }
+        bv.extract(256 - 8 - 1, 0).simplify().into()
     }
 }
 
@@ -29,13 +34,10 @@ impl From<BitVec<32>> for Uint<256, 4> {
             let offset = 256 - (i * 8) - 1;
             let byte_extract: BV<'static> = value.extract(offset, offset - 7).simplify();
             // since byte_extract is a single byte, downcasting to u8 will not change the number
-            let byte =  byte_extract.as_u64().unwrap() as u8;
+            let byte = byte_extract.as_u64().unwrap() as u8;
             numbits[i as usize] = byte;
-
-            
         }
         Bits::from_be_bytes(numbits).as_uint().clone()
-        
     }
 }
 
@@ -74,17 +76,17 @@ impl<const SZ: usize> From<BitVec<SZ>> for BV<'static> {
 impl<const SZ: usize> From<[u8; SZ]> for BitVec<SZ> {
     fn from(value: [u8; SZ]) -> Self {
         let ctx: &'static Context = ctx();
-        let mut bv:  BV<'static> = BV::from_u64(ctx, 0, 8);
-        
+        let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8);
 
-       for i in value.iter() {
-           let new_bv: BV<'static> = bvi::<1>(*i).into();
+        for i in value.iter() {
+            let new_bv: BV<'static> = bvi::<1>(*i).into();
             bv = bv.concat(&new_bv).simplify();
-           
-       }
-       eprintln!("VALUE CONVERTING FROM: {:#x?}", value);
-       eprintln!("BV IN SLICE CONVERT: {:#?} SIZE: {}", bv, bv.get_size());
-       bv.extract((bv.get_size() - 8 - 1) as u32, 0).simplify().into()
+        }
+        eprintln!("VALUE CONVERTING FROM: {:#x?}", value);
+        eprintln!("BV IN SLICE CONVERT: {:#?} SIZE: {}", bv, bv.get_size());
+        bv.extract((bv.get_size() - 8 - 1) as u32, 0)
+            .simplify()
+            .into()
     }
 }
 
@@ -111,12 +113,12 @@ fn test_slice_to_op_arg() {
 #[test]
 fn test_slice_to_bitvec() {
     let mut slice8 = 327000_u64.to_be_bytes();
-    
+
     let slice_full = zero_extend::<32>(&slice8);
     let bv: BitVec<32> = slice_full.into();
 
     let num = uint!(0x000000000000000000000000000000000000000000000000000000000004FD58_U256);
-    let bv_as_num: Uint<256,4> = bv.into();
+    let bv_as_num: Uint<256, 4> = bv.into();
     assert_eq!(num, bv_as_num);
 }
 
@@ -144,7 +146,6 @@ fn test_to_bv() {
     let mut expected = bvi(9);
     expected.simplify();
     assert_eq!(expected, bv_2);
-
 }
 
 #[test]
@@ -153,5 +154,4 @@ fn test_from_bv() {
     let num = uint!(0x000000000000000000000000000000000000000000000000000000000004FD58_U256);
     let bv_to_num: Uint<256, 4> = bv.into();
     assert_eq!(num, bv_to_num);
-
 }

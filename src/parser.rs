@@ -1,30 +1,24 @@
-use crate::{instruction::*, smt::BitVec, bvi};
-use revm::{
-    opcode::OpCode, OPCODE_JUMPMAP
-};
-use hex::{decode};
+use crate::{bvi, instruction::*, smt::BitVec};
+use hex::decode;
+use revm::{opcode::OpCode, OPCODE_JUMPMAP};
 use ruint::Uint;
 pub struct Parser<'a> {
-    pgm: &'a str
+    pgm: &'a str,
 }
 
 impl<'a> Parser<'a> {
-
     pub fn with_pgm(pgm: &'a str) -> Self {
-        Self {
-            pgm
-        }
+        Self { pgm }
     }
 
     pub fn parse(&self) -> Vec<Instruction> {
         let bytes = decode(self.pgm).unwrap();
         let mut opcodes: Vec<Instruction> = vec![];
-        
+
         let mut pgm = vec![];
         let mut skip_size = 0;
         let mut idx = 0_usize;
         for b in &bytes {
-            
             let b = *b;
             if skip_size > 0 {
                 skip_size -= 1;
@@ -44,21 +38,16 @@ impl<'a> Parser<'a> {
                 pgm.push(parse_swap(b));
             } else {
                 let inst = Instruction::from(b);
-                pgm.push(inst);  
+                pgm.push(inst);
             }
             idx += 1;
-          
         }
         pgm
-
-       
     }
-
 }
 
 // Returns instruction + any left over bytes in the slice after extracting the opcode & opcode args
 fn parse_push(bytes: &[u8]) -> (Instruction, u8, Vec<u8>) {
-
     let instruction_byte = *bytes.first().unwrap();
     let push_size = push_size(instruction_byte);
     eprintln!("PUSH SIZE IS {}", push_size);
@@ -71,13 +60,20 @@ fn parse_push(bytes: &[u8]) -> (Instruction, u8, Vec<u8>) {
             new_bytes.push(0);
         }
         let push_val = &new_bytes[1..(push_size + 1) as usize];
-        (push_op(push_size, push_val),push_size, new_bytes[(push_size) as usize..new_bytes.len()].to_vec())
+        (
+            push_op(push_size, push_val),
+            push_size,
+            new_bytes[(push_size) as usize..new_bytes.len()].to_vec(),
+        )
     } else {
         let push_val = &bytes[1..(push_size + 1) as usize];
         eprintln!("PUSH VAL IS {:#?}", push_val);
-        (push_op(push_size, push_val),push_size, bytes[(push_size) as usize..bytes.len()].to_vec())
+        (
+            push_op(push_size, push_val),
+            push_size,
+            bytes[(push_size) as usize..bytes.len()].to_vec(),
+        )
     }
-
 }
 
 fn parse_dup(byte: u8) -> Instruction {
@@ -135,20 +131,13 @@ pub fn zero_extend<const SZ: usize>(bytes: &[u8]) -> [u8; SZ] {
         for i in (0..pad_size - 1) {
             extended_bytes[i] = 0;
         }
-
-
     } else {
         extended_bytes.copy_from_slice(bytes);
     }
     extended_bytes
-        
-    
 }
 
-
-
 fn push_op(sz: u8, val: &[u8]) -> Instruction {
-    
     // let val = if val.len() < 8 {
     //     let mut zero_len = if val.len() < 8 {8 - val.len()} else {0};
     //     let mut buf = vec![];
@@ -156,7 +145,7 @@ fn push_op(sz: u8, val: &[u8]) -> Instruction {
     //         buf.push(0);
     //     }
     //     buf.extend_from_slice(val);
-       
+
     //     let mut sliced = [0u8; 8];
     //     sliced.copy_from_slice(&buf);
     //     u64::from_be_bytes(sliced)
@@ -165,137 +154,136 @@ fn push_op(sz: u8, val: &[u8]) -> Instruction {
     //     buf.copy_from_slice()
     //     u64::from_be_bytes(val)
     // };
-   
 
     match sz {
         1 => {
             let val = zero_extend::<1>(val);
             push1(val.into())
-        },
+        }
         2 => {
             let val = zero_extend::<2>(val).into();
             push2(val)
-        },
+        }
         3 => {
             let val = zero_extend::<3>(val).into();
             push3(val)
-        },
+        }
         4 => {
-            let val = zero_extend::<4>(val).into(); 
+            let val = zero_extend::<4>(val).into();
             push4(val)
-        },
-        5 => { 
+        }
+        5 => {
             let val = zero_extend::<5>(val).into();
             push5(val)
-        },
-        6 => { 
+        }
+        6 => {
             let val = zero_extend::<6>(val).into();
             push6(val)
-        },
-        7 => { 
+        }
+        7 => {
             let val = zero_extend::<7>(val).into();
             push7(val)
-        },
-        8 => { 
+        }
+        8 => {
             let val = zero_extend::<8>(val).into();
             push8(val)
-        },
-        9 => { 
+        }
+        9 => {
             let val = zero_extend::<9>(val).into();
             push9(val)
-        },
-        10 => { 
+        }
+        10 => {
             let val = zero_extend::<10>(val).into();
             push10(val)
-        },
-        11 => { 
+        }
+        11 => {
             let val = zero_extend::<11>(val).into();
             push11(val)
-        },
-        12 => { 
+        }
+        12 => {
             let val = zero_extend::<12>(val).into();
             push12(val)
-        },
-        13 => { 
+        }
+        13 => {
             let val = zero_extend::<13>(val).into();
             push13(val)
-        },
-        14 => { 
+        }
+        14 => {
             let val = zero_extend::<14>(val).into();
             push14(val)
-        },
-        15 => { 
+        }
+        15 => {
             let val = zero_extend::<15>(val).into();
             push15(val)
-        },
-        16 => { 
+        }
+        16 => {
             let val = zero_extend::<16>(val).into();
             push16(val)
-        },
-        17 => { 
+        }
+        17 => {
             let val = zero_extend::<17>(val).into();
             push17(val)
-        },
-        18 => { 
+        }
+        18 => {
             let val = zero_extend::<18>(val).into();
             push18(val)
-        },
-        19 => { 
+        }
+        19 => {
             let val = zero_extend::<19>(val).into();
             push19(val)
-        },
-        20 => { 
+        }
+        20 => {
             let val = zero_extend::<20>(val).into();
             push20(val)
-        },
-        21 => { 
+        }
+        21 => {
             let val = zero_extend::<21>(val).into();
             push21(val)
-        },
-        21 => { 
+        }
+        21 => {
             let val = zero_extend::<22>(val).into();
             push22(val)
-        },
-        23 => { 
+        }
+        23 => {
             let val = zero_extend::<23>(val).into();
             push23(val)
-        },
-        24 => { 
+        }
+        24 => {
             let val = zero_extend::<24>(val).into();
             push24(val)
-        },
-        25 => { 
+        }
+        25 => {
             let val = zero_extend::<25>(val).into();
             push25(val)
-        },
-        26 => { 
+        }
+        26 => {
             let val = zero_extend::<26>(val).into();
             push26(val)
-        },
-        27 => { 
+        }
+        27 => {
             let val = zero_extend::<27>(val).into();
             push27(val)
-        },
-        28 => { 
+        }
+        28 => {
             let val = zero_extend::<28>(val).into();
             push28(val)
-        },
-        29 => { 
+        }
+        29 => {
             let val = zero_extend::<29>(val).into();
             push29(val)
-        },
-        30 => { 
+        }
+        30 => {
             let val = zero_extend::<30>(val).into();
             push30(val)
-        },
-        31 => { 
+        }
+        31 => {
             let val = zero_extend::<31>(val).into();
             push31(val)
-        },
-        32 => { 
+        }
+        32 => {
             let val = zero_extend::<32>(val).into();
             push32(val)
-        },
+        }
         _ => {
             todo!()
         }
@@ -320,7 +308,7 @@ fn swap_op(sz: u8) -> Instruction {
         14 => Instruction::Swap14,
         15 => Instruction::Swap15,
         16 => Instruction::Swap16,
-        _ => todo!()
+        _ => todo!(),
     }
 }
 
@@ -342,10 +330,9 @@ fn dup_op(sz: u8) -> Instruction {
         14 => dup14(),
         15 => dup15(),
         16 => dup16(),
-        _ => todo!()
-    }    
+        _ => todo!(),
+    }
 }
-
 
 impl Instruction {
     pub fn from_byte(value: u8) -> Self {
@@ -354,32 +341,26 @@ impl Instruction {
 
     // Has to handle when it's a push or dup, otherwise easy 1-1 conversion
     pub fn from_slice(bytes: &[u8]) -> Instruction {
-       let instruction_byte = *bytes.first().unwrap();
-       
-       if is_push(instruction_byte) {
-        let push_size = push_size(instruction_byte);
-        let push_val = &bytes[1..push_size as usize];
-        push_op(push_size, push_val)
-       } else if is_dup(instruction_byte) {
+        let instruction_byte = *bytes.first().unwrap();
+
+        if is_push(instruction_byte) {
+            let push_size = push_size(instruction_byte);
+            let push_val = &bytes[1..push_size as usize];
+            push_op(push_size, push_val)
+        } else if is_dup(instruction_byte) {
             let dup_size = dup_size(instruction_byte);
             dup_op(dup_size)
-       } else if is_swap(instruction_byte) {
+        } else if is_swap(instruction_byte) {
             let swap_size = swap_size(instruction_byte);
             swap_op(swap_size)
-       } else {
+        } else {
             Instruction::from(instruction_byte)
-       }
-       
+        }
     }
-
-
 }
-
-
 
 impl From<u8> for Instruction {
     fn from(value: u8) -> Self {
-
         match value {
             0x00 => Instruction::Stop,
             0x01 => Instruction::Add,
@@ -447,84 +428,83 @@ impl From<u8> for Instruction {
             0x61 => Instruction::Push2(Default::default()),
             0x62 => Instruction::Push3(Default::default()),
             0x63 => Instruction::Push4(Default::default()),
-            0x64 => Instruction::Push5(Default::default()), 
-            0x65 => Instruction::Push6(Default::default()), 
-            0x66 => Instruction::Push7(Default::default()), 
-            0x67 => Instruction::Push8(Default::default()), 
-            0x68 => Instruction::Push9(Default::default()), 
-            0x69 => Instruction::Push10(Default::default()), 
+            0x64 => Instruction::Push5(Default::default()),
+            0x65 => Instruction::Push6(Default::default()),
+            0x66 => Instruction::Push7(Default::default()),
+            0x67 => Instruction::Push8(Default::default()),
+            0x68 => Instruction::Push9(Default::default()),
+            0x69 => Instruction::Push10(Default::default()),
             0x6a => Instruction::Push11(Default::default()),
-            0x6b => Instruction::Push12(Default::default()), 
-            0x6c => Instruction::Push13(Default::default()), 
+            0x6b => Instruction::Push12(Default::default()),
+            0x6c => Instruction::Push13(Default::default()),
             0x6d => Instruction::Push14(Default::default()),
-            0x6e => Instruction::Push15(Default::default()), 
-            0x6f => Instruction::Push16(Default::default()), 
+            0x6e => Instruction::Push15(Default::default()),
+            0x6f => Instruction::Push16(Default::default()),
             0x70 => Instruction::Push17(Default::default()),
-            0x71 => Instruction::Push18(Default::default()), 
+            0x71 => Instruction::Push18(Default::default()),
             0x72 => Instruction::Push19(Default::default()),
-            0x73 => Instruction::Push20(Default::default()), 
-            0x74 => Instruction::Push21(Default::default()), 
-            0x75 => Instruction::Push22(Default::default()), 
-            0x76 => Instruction::Push23(Default::default()),  
-            0x77 => Instruction::Push24(Default::default()),  
-            0x78 => Instruction::Push25(Default::default()), 
-            0x79 => Instruction::Push26(Default::default()), 
-            0x7a => Instruction::Push27(Default::default()), 
-            0x7b => Instruction::Push28(Default::default()), 
-            0x7c => Instruction::Push29(Default::default()), 
-            0x7d => Instruction::Push30(Default::default()), 
-            0x7e => Instruction::Push31(Default::default()), 
-            0x7f => Instruction::Push32(Default::default()), 
-            0x80 => Instruction::Dup1,  
-            0x81 => Instruction::Dup2,  
-            0x82 => Instruction::Dup3,  
-            0x83 => Instruction::Dup4,  
-            0x84 => Instruction::Dup5,  
-            0x85 => Instruction::Dup6,  
-            0x86 => Instruction::Dup7,  
-            0x87 => Instruction::Dup8,  
-            0x88 => Instruction::Dup9,  
-            0x89 => Instruction::Dup10,  
-            0x8a => Instruction::Dup11,  
-            0x8b => Instruction::Dup12,  
-            0x8c => Instruction::Dup13,  
-            0x8d => Instruction::Dup14,  
-            0x8e => Instruction::Dup15,  
-            0x8f => Instruction::Dup16,  
-            0x90 => Instruction::Swap1,  
-            0x91 => Instruction::Swap2,  
-            0x92 => Instruction::Swap3,  
-            0x93 => Instruction::Swap4,  
-            0x94 => Instruction::Swap5,  
-            0x95 => Instruction::Swap6,  
-            0x96 => Instruction::Swap7,  
-            0x97 => Instruction::Swap8,  
-            0x98 => Instruction::Swap9,  
-            0x99 => Instruction::Swap10,  
-            0x9a => Instruction::Swap11,  
-            0x9b => Instruction::Swap12,  
-            0x9c => Instruction::Swap13, 
-            0x9d => Instruction::Swap14,  
-            0x9e => Instruction::Swap15,  
-            0x9f => Instruction::Swap16, 
-            0xa0 => Instruction::Log0, 
-            0xa1 => Instruction::Log1,  
-            0xa2 => Instruction::Log2,  
-            0xa3 => Instruction::Log3,  
-            0xa4 => Instruction::Log4, 
-            0xf0 => Instruction::Create,  
-            0xf1 => Instruction::Call, 
-            0xf2 => Instruction::CallCode,  
-            0xf3 => Instruction::Return, 
-            0xf4 => Instruction::DelegateCall,  
-            0xf5 => Instruction::Create2,  
-            0xfa => Instruction::StaticCall,  
-            0xfd => Instruction::Revert,  
-            0xfe => Instruction::Invalid,  
-            0xff => Instruction::SelfDestruct,  
+            0x73 => Instruction::Push20(Default::default()),
+            0x74 => Instruction::Push21(Default::default()),
+            0x75 => Instruction::Push22(Default::default()),
+            0x76 => Instruction::Push23(Default::default()),
+            0x77 => Instruction::Push24(Default::default()),
+            0x78 => Instruction::Push25(Default::default()),
+            0x79 => Instruction::Push26(Default::default()),
+            0x7a => Instruction::Push27(Default::default()),
+            0x7b => Instruction::Push28(Default::default()),
+            0x7c => Instruction::Push29(Default::default()),
+            0x7d => Instruction::Push30(Default::default()),
+            0x7e => Instruction::Push31(Default::default()),
+            0x7f => Instruction::Push32(Default::default()),
+            0x80 => Instruction::Dup1,
+            0x81 => Instruction::Dup2,
+            0x82 => Instruction::Dup3,
+            0x83 => Instruction::Dup4,
+            0x84 => Instruction::Dup5,
+            0x85 => Instruction::Dup6,
+            0x86 => Instruction::Dup7,
+            0x87 => Instruction::Dup8,
+            0x88 => Instruction::Dup9,
+            0x89 => Instruction::Dup10,
+            0x8a => Instruction::Dup11,
+            0x8b => Instruction::Dup12,
+            0x8c => Instruction::Dup13,
+            0x8d => Instruction::Dup14,
+            0x8e => Instruction::Dup15,
+            0x8f => Instruction::Dup16,
+            0x90 => Instruction::Swap1,
+            0x91 => Instruction::Swap2,
+            0x92 => Instruction::Swap3,
+            0x93 => Instruction::Swap4,
+            0x94 => Instruction::Swap5,
+            0x95 => Instruction::Swap6,
+            0x96 => Instruction::Swap7,
+            0x97 => Instruction::Swap8,
+            0x98 => Instruction::Swap9,
+            0x99 => Instruction::Swap10,
+            0x9a => Instruction::Swap11,
+            0x9b => Instruction::Swap12,
+            0x9c => Instruction::Swap13,
+            0x9d => Instruction::Swap14,
+            0x9e => Instruction::Swap15,
+            0x9f => Instruction::Swap16,
+            0xa0 => Instruction::Log0,
+            0xa1 => Instruction::Log1,
+            0xa2 => Instruction::Log2,
+            0xa3 => Instruction::Log3,
+            0xa4 => Instruction::Log4,
+            0xf0 => Instruction::Create,
+            0xf1 => Instruction::Call,
+            0xf2 => Instruction::CallCode,
+            0xf3 => Instruction::Return,
+            0xf4 => Instruction::DelegateCall,
+            0xf5 => Instruction::Create2,
+            0xfa => Instruction::StaticCall,
+            0xfd => Instruction::Revert,
+            0xfe => Instruction::Invalid,
+            0xff => Instruction::SelfDestruct,
             _ => Instruction::Invalid,
         }
-        
     }
 }
 
@@ -534,7 +514,7 @@ fn is_push_works() {
         assert!(is_push(b));
     }
 
-    for b in (0x00_u8 .. 0x5f) {
+    for b in (0x00_u8..0x5f) {
         assert!(!is_push(b));
     }
 
@@ -568,7 +548,7 @@ contract Counter {
 #[test]
 fn can_parse_simple_pgm() {
     const COUNTER_SOL_CODE: &'static str = "604260005260206000610040F3";
-    
+
     let pgm = Parser::with_pgm(COUNTER_SOL_CODE).parse();
     let sixty_four: BitVec<32> = bvi(0x0040);
     eprintln!("SIXTY FOUR: {:#?}", sixty_four);
@@ -579,12 +559,10 @@ fn can_parse_simple_pgm() {
         Instruction::Push1(bvi(0x20)),
         Instruction::Push1(bvi(0)),
         push2(bvi(0x0040)),
-        Instruction::Return
+        Instruction::Return,
     ];
 
     assert_eq!(expected, pgm);
-
-
 }
 
 #[test]
@@ -625,10 +603,8 @@ fn can_parse_larger_pgm_with_storage() {
         Instruction::Swap1,
         Instruction::SStore,
         Instruction::Pop,
-        push2(bvi(0x0197))
-
+        push2(bvi(0x0197)),
     ];
-
 
     let pgm_first_30 = (&pgm[..33]).to_vec();
     assert_eq!(expected_first_30, pgm_first_30);

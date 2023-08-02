@@ -1,8 +1,8 @@
 pub mod z3;
 
-use std::hash::{Hash, Hasher};
 pub use self::z3::*;
 use super::{ctx, SolverType};
+use std::hash::{Hash, Hasher};
 use z3_ext::ast::{Ast, BV};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -18,7 +18,6 @@ pub struct BitVec<const SZ: usize> {
     pub(crate) typ: super::SolverType,
 }
 
-
 // impl<const SZ: usize> PartialEq for BitVec<SZ> {
 //     fn eq(&self, other: &Self) -> bool {
 //         let BVType::Z3(a) = &self.inner;
@@ -33,10 +32,7 @@ impl<const SZ: usize> Hash for BitVec<SZ> {
         self.as_ref().hash(state);
         state.finish();
     }
-
-    
 }
-
 
 impl<const SZ: usize> BitVec<SZ> {
     pub fn with_bv(bv: BV<'static>) -> Self {
@@ -62,7 +58,6 @@ impl<const SZ: usize> Default for BitVec<SZ> {
 
 impl<const SZ: usize> PartialEq for BitVec<SZ> {
     fn eq(&self, other: &Self) -> bool {
-
         let a = self.as_ref();
         let b = other.as_ref();
 

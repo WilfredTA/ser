@@ -1,18 +1,8 @@
-
-
+#![allow(unused_imports)]
 use ser::{
-    traits::*,
-    machine::*,
-    stack::*,
-    storage::*,
-    memory::*,
-    conversion::*,
-    bvc,
-    bvi,
-    parser::*,
+    bvc, bvi, conversion::*, machine::*, memory::*, parser::*, stack::*, storage::*, traits::*,
 };
 use z3::ast::*;
-
 
 pub const SUPERSIMPLE: &str = r#"604260005260206000F3"#;
 fn main() {
@@ -23,8 +13,7 @@ fn main() {
     let leaf = execution_trace.states.leaves();
     assert_eq!(1, leaf.len());
     let final_tree = leaf.first().unwrap().clone();
-    // eprintln!("FINAL TREE: {:#?}", final_tree);
-   
+
     let mut mem_val = final_tree.val.mem_read(bvi(0));
     mem_val.simplify();
     assert_eq!(bvi(66), mem_val);

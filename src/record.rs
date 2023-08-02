@@ -75,8 +75,15 @@ impl<const SZ: usize> StackChange<SZ> {
 
 #[derive(Clone, Debug)]
 pub enum StorageOp {
-    Read {addr: Address, idx: Index},
-    Write {addr: Address, idx: Index, val: Value}
+    Read {
+        addr: Address,
+        idx: Index,
+    },
+    Write {
+        addr: Address,
+        idx: Index,
+        val: Value,
+    },
 }
 
 #[derive(Clone, Debug)]

@@ -17,7 +17,6 @@ impl MachineComponent for Memory {
     type Record = MemChange;
 
     fn apply_change(&mut self, rec: Self::Record) {
-       
         let MemChange { ops_log } = rec;
         let mut highest_idx = self.highest_idx;
         ops_log.into_iter().for_each(|op| match op {
@@ -26,7 +25,10 @@ impl MachineComponent for Memory {
                 val.simplify();
                 let mut idx = idx;
                 idx.simplify();
-                eprintln!("MEM WRITE FOR MEM APPLY: idx: {:#?}, value: {:#?}", idx, val);
+                eprintln!(
+                    "MEM WRITE FOR MEM APPLY: idx: {:#?}, value: {:#?}",
+                    idx, val
+                );
                 let idx_cmp: usize = idx.clone().into();
                 if idx_cmp > highest_idx {
                     highest_idx = idx_cmp;
@@ -81,7 +83,11 @@ impl Memory {
         while i < 32 {
             let idx = idx + 31;
             let val = mem.get(idx - i).unwrap().as_ref().clone();
-            eprintln!("MEM VAL IN READ WORD FOR IDX - i:\nmem loc {:#?}\nval: {:#?}", (idx - i), val);
+            eprintln!(
+                "MEM VAL IN READ WORD FOR IDX - i:\nmem loc {:#?}\nval: {:#?}",
+                (idx - i),
+                val
+            );
             bytes.push(val);
             i += 1;
         }
@@ -94,7 +100,6 @@ impl Memory {
             } else {
                 new_bv_inner = new_bv_inner.concat(&b);
             }
-
         });
         BitVec {
             inner: BVType::Z3(new_bv_inner),

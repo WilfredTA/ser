@@ -144,10 +144,8 @@ impl<'ctx> StateTree<'ctx> {
                 }
             }
             None
-
         }
     }
-    
 
     pub fn insert_left_helper(
         &mut self,
@@ -238,7 +236,6 @@ impl<'ctx> StateTree<'ctx> {
     pub fn leaves(&self) -> Vec<StateTree> {
         let mut leaves = vec![];
 
-       
         if self.left.is_none() && self.right.is_none() {
             leaves.push((self.val.clone(), self.path_condition.clone()).into());
             return leaves;
@@ -251,7 +248,7 @@ impl<'ctx> StateTree<'ctx> {
         if let Some(right) = self.right.as_ref() {
             leaves.extend(right.leaves())
         }
-        
+
         // if let Some(left) = &self.left {
 
         //     if left.left.is_none() && left.right.is_none() {

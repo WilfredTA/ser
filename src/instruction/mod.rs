@@ -10,17 +10,15 @@ use crate::state::evm::EvmState;
 use crate::storage::StorageValue;
 use crate::traits::*;
 use crate::{
-    random_bv_arg,
     bvi,
     machine::Evm,
     memory::Memory,
+    random_bv_arg,
     record::{Index, MachineRecord, StackChange, StackOp},
     stack::Stack,
 };
 
 use super::smt::*;
-
-
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Instruction {
@@ -180,7 +178,7 @@ fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
         pc: (mach.pc(), mach.pc() + 1),
         mem: Default::default(),
         halt: false,
-                    storage: None,
+        storage: None,
         constraints: None,
     }
 }
@@ -869,13 +867,16 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     mem: None,
                     stack: Some(stack_change),
                     storage: Some(StorageChange {
-                        log: vec![StorageOp::Read { addr: mach.address.clone(), idx: key.clone() }],
+                        log: vec![StorageOp::Read {
+                            addr: mach.address.clone(),
+                            idx: key.clone(),
+                        }],
                     }),
-                    pc:(mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + 1),
                     constraints: None,
                     halt: false,
                 }
-            },
+            }
             Instruction::SStore => {
                 let key = mach.stack().peek().unwrap();
                 let val = mach.stack().peek_nth(1).unwrap();
@@ -883,10 +884,14 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let stack_rec = StackChange {
                     pop_qty: 2,
                     push_qty: 0,
-                    ops: vec![StackOp::Pop, StackOp::Pop]
+                    ops: vec![StackOp::Pop, StackOp::Pop],
                 };
                 let storage_change = StorageChange {
-                    log: vec![StorageOp::Write { addr: mach.address.clone(), idx: key.clone(), val: val.clone() }],
+                    log: vec![StorageOp::Write {
+                        addr: mach.address.clone(),
+                        idx: key.clone(),
+                        val: val.clone(),
+                    }],
                 };
 
                 MachineRecord {
@@ -897,8 +902,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                 }
-          
-            },
+            }
             Instruction::Jump => todo!(),
             Instruction::JumpI => {
                 let jump_dest = mach.stack().peek().unwrap();
@@ -1444,28 +1448,24 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Create => todo!(),
             Instruction::Call => todo!(),
             Instruction::CallCode => todo!(),
-            Instruction::Return => {
-                MachineRecord {
-                    mem: None,
-                    stack: None,
-                    storage: None,
-                    pc: (mach.pc(), mach.pc()),
-                    constraints: None,
-                    halt: true,
-                }
+            Instruction::Return => MachineRecord {
+                mem: None,
+                stack: None,
+                storage: None,
+                pc: (mach.pc(), mach.pc()),
+                constraints: None,
+                halt: true,
             },
             Instruction::DelegateCall => todo!(),
             Instruction::Create2 => todo!(),
             Instruction::StaticCall => todo!(),
-            Instruction::Revert => {
-                MachineRecord {
-                    mem: None,
-                    stack: None,
-                    storage: None,
-                    pc: (mach.pc(), mach.pc()),
-                    constraints: None,
-                    halt: true,
-                }
+            Instruction::Revert => MachineRecord {
+                mem: None,
+                stack: None,
+                storage: None,
+                pc: (mach.pc(), mach.pc()),
+                constraints: None,
+                halt: true,
             },
             Instruction::Invalid => todo!(),
             Instruction::SelfDestruct => todo!(),
