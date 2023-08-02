@@ -43,8 +43,8 @@ impl NodeId {
 
 #[derive(Clone, Debug, Default)]
 pub struct StateTree<'ctx> {
-    pub(crate) id: NodeId,
-    pub(crate) val: EvmState,
+    pub id: NodeId,
+    pub val: EvmState,
     pub(crate) path_condition: Option<Bool<'ctx>>,
     pub(crate) left: Option<Box<StateTree<'ctx>>>,
     pub(crate) right: Option<Box<StateTree<'ctx>>>,
@@ -129,17 +129,38 @@ impl<'ctx> StateTree<'ctx> {
         }
     }
 
+    pub fn find_by_id(&self, id: &NodeId) -> Option<&StateTree<'ctx>> {
+        if self.id == *id {
+            Some(self)
+        } else {
+            if let Some(left) = self.left.as_ref() {
+                if let Some(found_l) = left.find_by_id(id) {
+                    return Some(found_l);
+                }
+            }
+            if let Some(right) = self.right.as_ref() {
+                if let Some(found_r) = right.find_by_id(id) {
+                    return Some(found_r);
+                }
+            }
+            None
+
+        }
+    }
+    
+
     pub fn insert_left_helper(
         &mut self,
         tree: impl Into<StateTree<'ctx>>,
         id: Uuid,
-    ) -> Option<Uuid> {
+    ) -> Option<&StateTree> {
         let tree = tree.into();
         let inserted_id = tree.id.id;
 
         if self.id.id == id {
-            self.left = Some(Box::new(tree));
-            Some(inserted_id)
+            let tree = Box::new(tree);
+            self.left = Some(tree);
+            self.left.as_ref().map(|t| t.as_ref())
         } else {
             let left_result = if let Some(left) = &mut self.left {
                 left.insert_left_helper(tree.clone(), id)
@@ -163,13 +184,13 @@ impl<'ctx> StateTree<'ctx> {
         &mut self,
         tree: impl Into<StateTree<'ctx>>,
         id: Uuid,
-    ) -> Option<Uuid> {
+    ) -> Option<&StateTree> {
         let tree = tree.into();
         let inserted_id = tree.id.id;
 
         if self.id.id == id {
             self.right = Some(Box::new(tree));
-            Some(inserted_id)
+            self.right.as_ref().map(|t| t.as_ref())
         } else {
             let left_result = if let Some(left) = &mut self.left {
                 left.insert_right_helper(tree.clone(), id)
@@ -188,9 +209,9 @@ impl<'ctx> StateTree<'ctx> {
             }
         }
     }
-    pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
+    pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> NodeId {
         match self.insert_left_helper(tree, id) {
-            Some(i) => i,
+            Some(i) => i.id.clone(),
             None => panic!("Could not find id {id} in the state tree"),
         }
         // if self.id.id == id {
@@ -207,9 +228,9 @@ impl<'ctx> StateTree<'ctx> {
         // eprintln!("ALL NODES: {:?}", self.inorder());
     }
 
-    pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Uuid {
+    pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> NodeId {
         match self.insert_right_helper(tree, id) {
-            Some(i) => i,
+            Some(i) => i.id.clone(),
             None => panic!("Could not find id {id} in the state tree"),
         }
     }
@@ -217,25 +238,36 @@ impl<'ctx> StateTree<'ctx> {
     pub fn leaves(&self) -> Vec<StateTree> {
         let mut leaves = vec![];
 
+       
         if self.left.is_none() && self.right.is_none() {
             leaves.push((self.val.clone(), self.path_condition.clone()).into());
             return leaves;
         }
-        if let Some(left) = &self.left {
-            if left.left.is_none() && left.right.is_none() {
-                leaves.push((left.val.clone(), left.path_condition.clone()).into());
-            } else {
-                leaves.extend(left.leaves());
-            }
+
+        if let Some(left) = self.left.as_ref() {
+            leaves.extend(left.leaves());
         }
 
-        if let Some(right) = &self.right {
-            if right.right.is_none() && right.left.is_none() {
-                leaves.push((right.val.clone(), right.path_condition.clone()).into());
-            } else {
-                leaves.extend(right.leaves());
-            }
+        if let Some(right) = self.right.as_ref() {
+            leaves.extend(right.leaves())
         }
+        
+        // if let Some(left) = &self.left {
+
+        //     if left.left.is_none() && left.right.is_none() {
+        //         leaves.push((left.val.clone(), left.path_condition.clone()).into());
+        //     } else {
+        //         leaves.extend(left.leaves());
+        //     }
+        // }
+
+        // if let Some(right) = &self.right {
+        //     if right.right.is_none() && right.left.is_none() {
+        //         leaves.push((right.val.clone(), right.path_condition.clone()).into());
+        //     } else {
+        //         leaves.extend(right.leaves());
+        //     }
+        // }
         leaves
     }
 

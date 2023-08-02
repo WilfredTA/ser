@@ -1,3 +1,4 @@
+use crate::exec::Execution;
 use crate::instruction::Instruction;
 use crate::machine::{ExecBranch, ExecutionSummary};
 use crate::memory::Memory;
@@ -30,7 +31,7 @@ pub trait Machine<const STACK_ITEM_SZ: usize> {
     type State: MachineState<STACK_ITEM_SZ>;
 
     // All possible final states
-    fn exec(&mut self) -> Vec<ExecBranch>;
+    fn exec(&mut self) -> Execution;
     fn pgm(&self) -> Vec<Instruction>;
     fn state(&self) -> Self::State;
     fn state_ref(&self) -> &Self::State;

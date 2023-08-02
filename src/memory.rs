@@ -77,9 +77,11 @@ impl Memory {
         let idx: usize = idx.into();
         let mut bytes = vec![];
         let mut mem = self.inner.clone();
+        eprintln!(" MEM IN READ WORD: {:#?}", mem);
         while i < 32 {
             let idx = idx + 31;
             let val = mem.get(idx - i).unwrap().as_ref().clone();
+            eprintln!("MEM VAL IN READ WORD FOR IDX - i:\nmem loc {:#?}\nval: {:#?}", (idx - i), val);
             bytes.push(val);
             i += 1;
         }

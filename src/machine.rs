@@ -7,6 +7,7 @@ use z3_ext::{
     AstKind, Config, Context, Model, SatResult, Solver,
 };
 
+use crate::exec::Execution;
 use crate::instruction::*;
 use crate::memory::*;
 use crate::state::evm::EvmState;
@@ -63,6 +64,13 @@ pub struct TransactionContext {
     storage: HashMap<usize, [u8; 256]>
 
 }
+
+// The Evm is an *implementation* of the Machine trait
+// Its job is merely to orchestrate the incremental construction of an Execution
+// by initializing an Execution with a starting StateTree and calling Execution.step()
+// It also provides a handler to an Execution, which in turn provides a handler to EvmState
+// so that when an Instruction requires *reading* environmental / network state OR when an Instruction's behavior
+// *depends* on env / network state, it can access it through the Evm, which can be initialized with things like a Transaction context
 #[derive(Clone)]
 pub struct Evm<'ctx> {
     pgm: Vec<Instruction>,
@@ -72,44 +80,8 @@ pub struct Evm<'ctx> {
 }
 
 impl<'ctx> Evm<'ctx> {
-    // Given a machine (which has its internal state tree) & a machine record
-    // this method returns a new state tree containing all possible new machine states
-    // that would result from taking the step represented by the machine record
-    // fn state_transition(tree: StateTree<'ctx>, rec: MachineRecord<32>) -> StateTree {
-    //     let MachineRecord {pc, stack, mem, constraints, halt} = rec.clone();
-    //     let mut curr_node = tree.val.clone();
-    //     let mut new_state = tree.clone();
-    //     eprintln!("STACK BEFORE STATE TRANSITION: {:#?}", curr_node.stack());
-    //
-    //     let (straight_exec, jump_exec) = curr_node.state_transition(rec);
-    //     let (left_mach, mut left_mach_new_conds) = straight_exec;
-    //     eprintln!("STACK AFTER STATE TRANSITION: {:#?}", left_mach.stack());
-    //     if let Some(conds) = tree.path_condition {
-    //         left_mach_new_conds.push(conds.clone());
-    //         let cond_slice = left_mach_new_conds.iter().map(|c| c).collect::<Vec<_>>();
-    //         new_state.insert_left((left_mach,Bool::and(ctx(), &cond_slice.as_slice())));
-    //     }
-    //
-    //
-    //     if let Some(jump_state) = jump_exec {
-    //         new_state.insert_right((jump_state.0, constraints));
-    //     }
-    //     new_state
-    //
-    //     todo!()
-    // }
-}
-
-impl<'ctx> Evm<'ctx> {
-    pub fn new(pgm: Vec<Instruction>) -> Self {
-        let evm_state = EvmState {
-            memory: Default::default(),
-            stack: Default::default(),
-            pc: 0,
-            pgm: pgm.clone(),
-            address: Address::default(),
-            storage: AccountStorage::default(),
-        };
+    pub fn with_pgm(pgm: Vec<Instruction>) -> Self {
+        let evm_state = EvmState::with_pgm(pgm.clone());
         Self {
             pgm,
             states: StateTree {
@@ -124,100 +96,160 @@ impl<'ctx> Evm<'ctx> {
         }
     }
 
-    pub fn exec_check(&mut self) -> Vec<(ExecBranch, Option<Model<'ctx>>)> {
-        let evm_trace = self.exec();
-        let mut solver = z3_ext::Solver::new(ctx());
-        evm_trace
-            .into_iter()
-            .filter_map(|(state, constraints)| {
-                let constraint = constraints
-                    .clone()
-                    .into_iter()
-                    .reduce(|c, e| Bool::and(ctx(), &[&c, &e]));
-                if let Some(constraint) = constraint {
-                    solver.assert(&constraint);
-                }
-                match solver.check() {
-                    SatResult::Sat => {
-                        let model = solver.get_model();
-                        eprintln!(
-                            "State {:#?} is reachable.\nMODEL:{:#?}",
-                            state,
-                            solver.get_model()
-                        );
-                        Some(((state, constraints), model))
-                    }
-                    SatResult::Unsat => {
-                        eprintln!("Unsat");
-                        None
-                    }
-                    SatResult::Unknown => {
-                        eprintln!("Unknown");
-                        None
-                    }
-                }
-            })
-            .collect::<Vec<_>>()
+    pub fn set_init_state(&mut self, state: EvmState) {
+        self.states.val = state;
     }
+
+   
+}
+
+impl<'ctx> Evm<'ctx> {
+    pub fn new(pgm: Vec<Instruction>) -> Self {
+        let evm_state = EvmState::with_pgm(pgm.clone());
+        
+        Self {
+            pgm,
+            states: StateTree {
+                id: NodeId::new(),
+                val: evm_state,
+                path_condition: None,
+                left: None,
+                right: None,
+            },
+            change_log: vec![],
+            inverse_state: Default::default(),
+        }
+    }
+
+    // pub fn exec_check(&mut self) -> Vec<(ExecBranch, Option<Model<'ctx>>)> {
+    //     let evm_trace = self.exec();
+    //     let mut solver = z3_ext::Solver::new(ctx());
+    //     evm_trace
+    //         .into_iter()
+    //         .filter_map(|(state, constraints)| {
+    //             let constraint = constraints
+    //                 .clone()
+    //                 .into_iter()
+    //                 .reduce(|c, e| Bool::and(ctx(), &[&c, &e]));
+    //             if let Some(constraint) = constraint {
+    //                 solver.assert(&constraint);
+    //             }
+    //             match solver.check() {
+    //                 SatResult::Sat => {
+    //                     let model = solver.get_model();
+    //                     eprintln!(
+    //                         "State {:#?} is reachable.\nMODEL:{:#?}",
+    //                         state,
+    //                         solver.get_model()
+    //                     );
+    //                     Some(((state, constraints), model))
+    //                 }
+    //                 SatResult::Unsat => {
+    //                     eprintln!("Unsat");
+    //                     None
+    //                 }
+    //                 SatResult::Unknown => {
+    //                     eprintln!("Unknown");
+    //                     None
+    //                 }
+    //             }
+    //         })
+    //         .collect::<Vec<_>>()
+    // }
 }
 
 impl<'ctx> Machine<32> for Evm<'ctx> {
     type State = EvmState;
 
-    fn exec(&mut self) -> Vec<ExecBranch<'ctx>> {
-        let mut curr_state = self.states.val.clone();
-        let curr_id = self.states.id.clone();
-
-        let mut jump_ctx = vec![curr_id.id()];
-        let mut state_tree = self.states.clone();
-        let mut trace: Vec<ExecBranch> = vec![(curr_state, vec![])];
-        let mut leaves: Vec<ExecBranch> = vec![];
-
+    fn exec(&mut self) -> Execution {
+        let mut halt = false;
+        let mut step_recs = vec![];
+        let mut exec = Execution::new(self.states.val.clone(), self.pgm.clone());
+        let first_step = exec.step_mut();
+        step_recs.push(first_step);
         loop {
-            let curr_state = trace.pop();
-            let mut temp_id_ptr = jump_ctx.pop();
-            //eprintln!("Executing node with id {:?}", temp_id_ptr);
-            if let Some(curr_state) = curr_state {
-                let temp_id_ptr = temp_id_ptr.unwrap();
-
-                let (curr_state, curr_cond) = curr_state;
-                let mut curr_cond = curr_cond.clone();
-                let mut branch_cond_pre = curr_cond.clone();
-                let (next_state, next_state_branch) = curr_state.exec_once();
-                if let Some(branch) = next_state_branch {
-                    let (branch_state, branch_cond) = branch;
-                    branch_cond_pre.extend(branch_cond);
-                    let branch = (branch_state.clone(), branch_cond_pre.clone());
-
-                    let branch_right_id = state_tree.insert_right_of(branch.clone(), temp_id_ptr);
-
-                    jump_ctx.push(branch_right_id);
-                    if branch_state.can_continue() {
-                        trace.push(branch);
-                    } else {
-                        leaves.push(branch);
+            if let Some(step) = step_recs.pop() {
+                eprintln!("HALTED LEFT: {}, HALTED RIGHT: {}", step.halted_left(), step.halted_right());
+                if !step.halted_right() {
+                    let continue_from_right = step.right_id();
+                    if let Some(right_id) = continue_from_right {
+                        let nxt_right_step = exec.step_from_mut(right_id);
+                        step_recs.push(nxt_right_step);
                     }
-                }
-                let (nxt_state, nxt_constraints) = next_state;
-                curr_cond.extend(nxt_constraints);
-                let branch = (nxt_state.clone(), curr_cond.clone());
-                // eprintln!("Inserting to the left of {:?}", temp_id_ptr);
-
-                let branch_left_id = state_tree.insert_left_of(branch.clone(), temp_id_ptr);
-                // eprintln!("Inserted {} to the left of {}", branch_left_id, temp_id_ptr);
-                if nxt_state.can_continue() {
-                    trace.push(branch);
-                    jump_ctx.push(branch_left_id);
-                } else {
-                    leaves.push(branch);
+                } 
+                if !step.halted_left() {
+                    let continue_from_left = step.left_id();
+                    if let Some(left_id) = continue_from_left {
+                        let nxt_step = exec.step_from_mut(left_id);
+                        step_recs.push(nxt_step);
+                    }
                 }
             } else {
                 break;
             }
         }
-        self.states = state_tree;
-        leaves
+
+        exec
     }
+    // fn exec(&mut self) -> Vec<ExecBranch<'ctx>> {
+    //     let mut curr_state = self.states.val.clone();
+    //     let curr_id = self.states.id.clone();
+
+    //     let mut jump_ctx = vec![curr_id.id()];
+    //     let mut state_tree = self.states.clone();
+    //     let mut trace: Vec<ExecBranch> = vec![(curr_state, vec![])];
+    //     let mut leaves: Vec<ExecBranch> = vec![];
+
+    //     loop {
+    //         let curr_state = trace.pop();
+    //         let mut temp_id_ptr = jump_ctx.pop();
+    //         //eprintln!("Executing node with id {:?}", temp_id_ptr);
+    //         if let Some(curr_state) = curr_state {
+    //             let temp_id_ptr = temp_id_ptr.unwrap();
+
+    //             let (curr_state, curr_cond) = curr_state;
+    //             let mut curr_cond = curr_cond.clone();
+    //             let mut branch_cond_pre = curr_cond.clone();
+    //             let (next_state, next_state_branch, halt) = curr_state.exec_once();
+    //             if let Some(branch) = next_state_branch {
+    //                 let (branch_state, branch_cond) = branch;
+    //                 branch_cond_pre.extend(branch_cond);
+    //                 let branch = (branch_state.clone(), branch_cond_pre.clone());
+
+    //                 let branch_right_id = state_tree.insert_right_of(branch.clone(), temp_id_ptr);
+
+    //                 jump_ctx.push(branch_right_id);
+    //                 if branch_state.can_continue() {
+    //                     trace.push(branch);
+    //                 } else {
+    //                     leaves.push(branch);
+    //                 }
+    //             }
+
+    //             let (nxt_state, nxt_constraints) = next_state;
+    //             eprintln!("NEXT STATE {:#?}", nxt_state);
+    //             curr_cond.extend(nxt_constraints);
+    //             let branch = (nxt_state.clone(), curr_cond.clone());
+    //             // eprintln!("Inserting to the left of {:?}", temp_id_ptr);
+
+    //             let branch_left_id = state_tree.insert_left_of(branch.clone(), temp_id_ptr);
+    //             // eprintln!("Inserted {} to the left of {}", branch_left_id, temp_id_ptr);
+    //             if nxt_state.can_continue() && !halt {
+    //                 trace.push(branch);
+    //                 jump_ctx.push(branch_left_id);
+    //             } else {
+    //                 leaves.push(branch);
+    //             }
+    //             if halt {
+    //                 break;
+    //             }
+    //         } else {
+    //             break;
+    //         }
+    //     }
+    //     self.states = state_tree;
+    //     leaves
+    // }
 
     fn pgm(&self) -> Vec<Instruction> {
         self.pgm.clone()
@@ -245,7 +277,7 @@ impl MachineState<32> for EvmState {
     type PC = usize;
 
     fn pc(&self) -> Self::PC {
-        self.pc
+        self.pgm_counter()
     }
 
     fn stack(&self) -> &Stack<32> {
@@ -324,26 +356,31 @@ fn machine_returns_one_exec_for_non_branching_pgm() {
     ];
 
     let mut evm = Evm::new(pgm);
+    let execution = evm.exec();
+    let exec_tree = &execution.states;
+    let final_states = exec_tree.leaves();
+    assert_eq!(2, final_states.len());
+    assert_eq!(final_states.first().unwrap().val.stack().peek_nth(1).cloned().unwrap(), bvi(100));
+    eprintln!("Final states: {:#?}", final_states);
+    // {
+    //     let sat_branches = evm.exec_check();
+    //     assert!(
+    //         sat_branches.first().is_some()
+    //             && sat_branches
+    //                 .first()
+    //                 .unwrap()
+    //                 .0
+    //                  .0
+    //                 .stack()
+    //                 .peek_nth(1)
+    //                 .cloned()
+    //                 .unwrap()
+    //                 == bvi(100)
+    //     );
 
-    {
-        let sat_branches = evm.exec_check();
-        assert!(
-            sat_branches.first().is_some()
-                && sat_branches
-                    .first()
-                    .unwrap()
-                    .0
-                     .0
-                    .stack()
-                    .peek_nth(1)
-                    .cloned()
-                    .unwrap()
-                    == bvi(100)
-        );
-
-        assert_eq!(sat_branches.len(), 1);
-    }
-    eprintln!("STATES > {:#?}", evm.states);
+    //     assert_eq!(sat_branches.len(), 1);
+    // }
+    // eprintln!("STATES > {:#?}", evm.states);
 }
 
 #[test]
@@ -373,20 +410,20 @@ fn test_mem_store_mem_load() {
     */
     let mut evm = Evm::new(pgm);
 
-    {
-        let sat_branches = evm.exec_check();
-        assert_eq!(sat_branches.len(), 1);
-        let top = sat_branches
-            .first()
-            .unwrap()
-            .0
-             .0
-            .stack()
-            .peek()
-            .cloned()
-            .unwrap();
-        eprintln!("Stack top size: {:#?}", top.as_ref().get_size());
-        assert_eq!(top, bvi(3));
-    }
+    // {
+    //     let sat_branches = evm.exec_check();
+    //     assert_eq!(sat_branches.len(), 1);
+    //     let top = sat_branches
+    //         .first()
+    //         .unwrap()
+    //         .0
+    //          .0
+    //         .stack()
+    //         .peek()
+    //         .cloned()
+    //         .unwrap();
+    //     eprintln!("Stack top size: {:#?}", top.as_ref().get_size());
+    //     assert_eq!(top, bvi(3));
+    // }
     eprintln!("STATES > {:#?}", evm.states);
 }

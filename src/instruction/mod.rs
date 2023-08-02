@@ -1444,7 +1444,16 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Create => todo!(),
             Instruction::Call => todo!(),
             Instruction::CallCode => todo!(),
-            Instruction::Return => todo!(),
+            Instruction::Return => {
+                MachineRecord {
+                    mem: None,
+                    stack: None,
+                    storage: None,
+                    pc: (mach.pc(), mach.pc()),
+                    constraints: None,
+                    halt: true,
+                }
+            },
             Instruction::DelegateCall => todo!(),
             Instruction::Create2 => todo!(),
             Instruction::StaticCall => todo!(),

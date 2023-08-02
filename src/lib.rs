@@ -12,6 +12,7 @@ pub mod traits;
 pub mod conversion;
 pub mod storage;
 pub mod parser;
+pub mod exec;
 use paste::{expr, item, paste};
 use instruction::*;
 use smt::*;
