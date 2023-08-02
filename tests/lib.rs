@@ -32,8 +32,8 @@ fn can_run_simple_storage_pgm() {
     let mut evm = Evm::new(pgm);
 
     
-    let sat_branches = evm.exec();
-    let leaf = sat_branches.states.leaves();
+    let execution = evm.exec();
+    let leaf = execution.states.leaves();
     assert_eq!(2, leaf.len());
     eprintln!("LEAVES: {:#?}", leaf);
     let final_tree = leaf.get(1).unwrap().clone();
@@ -42,4 +42,16 @@ fn can_run_simple_storage_pgm() {
     mem_val.simplify();
     assert_eq!(bvi(128), mem_val);
     
+}
+
+#[test]
+fn can_run_counter_with_storage_mapping_pgm() {
+    let pgm = Parser::with_pgm(COUNTER_WITH_STORAGE_MAPPING).parse();
+    let mut evm = Evm::new(pgm);
+
+    
+    let execution = evm.exec();
+    let leaf = execution.states.leaves();
+    assert_eq!(2, leaf.len());
+   // eprintln!("LEAVES: {:#?}", leaf);
 }

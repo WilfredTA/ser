@@ -82,8 +82,8 @@ impl<const SZ: usize> From<[u8; SZ]> for BitVec<SZ> {
             let new_bv: BV<'static> = bvi::<1>(*i).into();
             bv = bv.concat(&new_bv).simplify();
         }
-        eprintln!("VALUE CONVERTING FROM: {:#x?}", value);
-        eprintln!("BV IN SLICE CONVERT: {:#?} SIZE: {}", bv, bv.get_size());
+        // eprintln!("VALUE CONVERTING FROM: {:#x?}", value);
+        // eprintln!("BV IN SLICE CONVERT: {:#?} SIZE: {}", bv, bv.get_size());
         bv.extract((bv.get_size() - 8 - 1) as u32, 0)
             .simplify()
             .into()

@@ -1,4 +1,5 @@
 use crate::machine::ExecBranch;
+use crate::parser::Program;
 use crate::state::tree::NodeId;
 use crate::storage::{AccountStorage, Address};
 use crate::traits::MachineState;
@@ -11,16 +12,18 @@ use crate::{
 };
 use z3_ext::ast::Bool;
 
+
 #[derive(Clone, Debug, Default)]
 pub struct EvmState {
     pub memory: Memory,
     pub storage: AccountStorage,
     pub stack: Stack<32>,
     pc: usize,
-    pub pgm: Vec<Instruction>,
+    pub pgm: Program,
     pub address: Address,
     pub halt: bool,
 }
+
 
 impl MachineComponent for EvmState {
     type Record = MachineRecord<32>;
@@ -46,7 +49,7 @@ impl MachineComponent for EvmState {
 }
 
 impl<'ctx> EvmState {
-    pub fn with_pgm(pgm: Vec<Instruction>) -> Self {
+    pub fn with_pgm(pgm: Program) -> Self {
         Self {
             pgm,
             ..Default::default()
@@ -58,16 +61,19 @@ impl<'ctx> EvmState {
     }
     pub fn set_pc(&mut self, new_pc: usize) {
         self.pc = new_pc;
-        if self.pc >= self.pgm.len() {
+        if self.pc >= self.pgm.pgm.len() {
             self.halt = true;
         }
     }
 
     pub fn inc_pc(&mut self) {
-        self.set_pc(self.pc + 1);
+        let curr_inst = self.curr_instruction();
+        
+
+        self.set_pc(self.pc + curr_inst.byte_size());
     }
     pub fn can_continue(&self) -> bool {
-        self.pc < self.pgm.len() && !self.halt
+        self.pc < self.pgm.get_size() && !self.halt
     }
     pub fn curr_instruction(&self) -> Instruction {
         if !self.can_continue() {
@@ -78,9 +84,17 @@ impl<'ctx> EvmState {
             eprintln!(
                 "Getting curr inst.. curr pc: {} and curr pgm len: {}",
                 self.pc,
-                self.pgm.len()
+                self.pgm.get_size()
             );
         }
-        self.pgm.get(self.pc).cloned().unwrap()
+        
+        self.pgm.get(self.pc).expect(&format!("Expected instruction at pc: {}", self.pc))
+    }
+}
+
+impl std::fmt::Display for EvmState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Pc: {}\nHalted: {}\nStack: {:?}\n{}", self.pc(), self.halt, self.stack(), self.mem())
+        
     }
 }

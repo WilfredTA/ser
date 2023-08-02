@@ -2,6 +2,7 @@ use crate::exec::Execution;
 use crate::instruction::Instruction;
 use crate::machine::{ExecBranch, ExecutionSummary};
 use crate::memory::Memory;
+use crate::parser::Program;
 use crate::record::{Index, MachineRecord, MemChange, StackChange, StorageChange};
 use crate::smt::BitVec;
 use crate::stack::Stack;
@@ -32,7 +33,7 @@ pub trait Machine<const STACK_ITEM_SZ: usize> {
 
     // All possible final states
     fn exec(&mut self) -> Execution;
-    fn pgm(&self) -> Vec<Instruction>;
+    fn pgm(&self) ->Program;
     fn state(&self) -> Self::State;
     fn state_ref(&self) -> &Self::State;
     fn state_ref_mut(&mut self) -> &mut Self::State;

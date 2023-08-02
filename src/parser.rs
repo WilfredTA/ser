@@ -1,23 +1,28 @@
+use std::collections::HashMap;
+
 use crate::{bvi, instruction::*, smt::BitVec};
 use hex::decode;
 use revm::{opcode::OpCode, OPCODE_JUMPMAP};
 use ruint::Uint;
+#[derive(Default)]
 pub struct Parser<'a> {
     pgm: &'a str,
+    parsed: Program
 }
 
 impl<'a> Parser<'a> {
     pub fn with_pgm(pgm: &'a str) -> Self {
-        Self { pgm }
+        Self { pgm, ..Default::default() }
     }
 
-    pub fn parse(&self) -> Vec<Instruction> {
+    pub fn parse(&self) -> Program {
         let bytes = decode(self.pgm).unwrap();
         let mut opcodes: Vec<Instruction> = vec![];
 
         let mut pgm = vec![];
         let mut skip_size = 0;
         let mut idx = 0_usize;
+        let mut pgm_map = HashMap::new();
         for b in &bytes {
             let b = *b;
             if skip_size > 0 {
@@ -30,19 +35,29 @@ impl<'a> Parser<'a> {
                 let sz = push_size(b);
                 let (inst, push_size, new_bytes) = parse_push(&bytes[idx as usize..]);
                 skip_size = push_size;
+                pgm_map.insert(idx, inst.clone());
                 idx += skip_size as usize;
                 pgm.push(inst);
             } else if is_dup(b) {
-                pgm.push(parse_dup(b))
+                let inst = parse_dup(b);
+                pgm_map.insert(idx, inst.clone());
+                pgm.push(inst);
             } else if is_swap(b) {
-                pgm.push(parse_swap(b));
+                let inst = parse_swap(b);
+                pgm_map.insert(idx, inst.clone());
+                pgm.push(inst);
             } else {
                 let inst = Instruction::from(b);
+                pgm_map.insert(idx, inst.clone());
                 pgm.push(inst);
             }
             idx += 1;
         }
-        pgm
+        Program {
+            map: pgm_map,
+            pgm,
+            size: idx + 1
+        }
     }
 }
 
@@ -50,11 +65,11 @@ impl<'a> Parser<'a> {
 fn parse_push(bytes: &[u8]) -> (Instruction, u8, Vec<u8>) {
     let instruction_byte = *bytes.first().unwrap();
     let push_size = push_size(instruction_byte);
-    eprintln!("PUSH SIZE IS {}", push_size);
-    eprintln!("Bytes len is {}", bytes.len());
+    //eprintln!("PUSH SIZE IS {}", push_size);
+    //eprintln!("Bytes len is {}", bytes.len());
     if bytes.len() - 1 < push_size as usize {
         let pad_len = push_size as usize - bytes.len() + 1;
-        eprintln!("pad len: {}", pad_len);
+      //  eprintln!("pad len: {}", pad_len);
         let mut new_bytes = bytes.to_vec();
         for _ in (0..pad_len) {
             new_bytes.push(0);
@@ -67,7 +82,7 @@ fn parse_push(bytes: &[u8]) -> (Instruction, u8, Vec<u8>) {
         )
     } else {
         let push_val = &bytes[1..(push_size + 1) as usize];
-        eprintln!("PUSH VAL IS {:#?}", push_val);
+        //eprintln!("PUSH VAL IS {:#?}", push_val);
         (
             push_op(push_size, push_val),
             push_size,
@@ -508,6 +523,27 @@ impl From<u8> for Instruction {
     }
 }
 
+#[derive(Default, Debug, Clone)]
+pub struct Program {
+    pub map: HashMap<usize, Instruction>,
+    pub pgm: Vec<Instruction>,
+    pub size: usize
+}
+
+impl Program {
+    pub fn get(&self, pc: usize) -> Option<Instruction> {
+        self.map.get(&pc).cloned()
+    }
+
+    pub fn get_size(&self) -> usize {
+        self.size
+    }
+}
+
+
+
+
+
 #[test]
 fn is_push_works() {
     for b in (0x60_u8..0x7f) {
@@ -551,7 +587,7 @@ fn can_parse_simple_pgm() {
 
     let pgm = Parser::with_pgm(COUNTER_SOL_CODE).parse();
     let sixty_four: BitVec<32> = bvi(0x0040);
-    eprintln!("SIXTY FOUR: {:#?}", sixty_four);
+   // eprintln!("SIXTY FOUR: {:#?}", sixty_four);
     let expected = vec![
         Instruction::Push1(bvi(0x42)),
         Instruction::Push1(bvi(0)),
@@ -562,7 +598,7 @@ fn can_parse_simple_pgm() {
         Instruction::Return,
     ];
 
-    assert_eq!(expected, pgm);
+    assert_eq!(expected, pgm.pgm);
 }
 
 #[test]
@@ -606,6 +642,15 @@ fn can_parse_larger_pgm_with_storage() {
         push2(bvi(0x0197)),
     ];
 
-    let pgm_first_30 = (&pgm[..33]).to_vec();
+    let inst10 = pgm.pgm.get(7).unwrap().clone();
+    let inst10map = pgm.get(11).unwrap();
+    assert_eq!(inst10, inst10map);
+    let pgm_first_30 = (&pgm.pgm[..33]).to_vec();
     assert_eq!(expected_first_30, pgm_first_30);
+    let pgm_map = pgm.map.into_iter().collect::<Vec<_>>();
+  
+    eprintln!("PROGRAM MAP INDICES: {:#?}", pgm_map);
+    let pgm_enumd = pgm_first_30.into_iter().enumerate().collect::<Vec<_>>();
+    eprintln!("Enumerated pgm indices: {:#?}", pgm_enumd);
+   // assert_eq!(pgm_enumd, pgm_map);
 }

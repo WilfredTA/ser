@@ -183,6 +183,46 @@ fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
     }
 }
 
+impl Instruction {
+    pub fn byte_size(&self) -> usize {
+        let inst_additional_size: usize = match self {
+            Instruction::Push1(_) => 1,
+            Instruction::Push2(_) => 2,
+            Instruction::Push3(_) =>3,
+            Instruction::Push4(_) =>4,
+            Instruction::Push5(_) =>5,
+            Instruction::Push6(_) =>6,
+            Instruction::Push7(_) =>7,
+            Instruction::Push8(_) =>8,
+            Instruction::Push9(_) =>9,
+            Instruction::Push10(_) => 10 ,
+            Instruction::Push11(_) => 11 ,
+            Instruction::Push12(_) => 12,
+            Instruction::Push13(_) => 13 ,
+            Instruction::Push14(_) => 14,
+            Instruction::Push15(_) => 15,
+            Instruction::Push16(_) => 16,
+            Instruction::Push17(_) => 17,
+            Instruction::Push18(_) => 18,
+            Instruction::Push19(_) => 19,
+            Instruction::Push20(_) => 20 ,
+            Instruction::Push21(_) => 21,
+            Instruction::Push22(_) => 22,
+            Instruction::Push23(_) => 23,
+            Instruction::Push24(_) => 24,
+            Instruction::Push25(_) => 25,
+            Instruction::Push26(_) => 26,
+            Instruction::Push27(_) => 27,
+            Instruction::Push28(_) => 28,
+            Instruction::Push29(_) => 29,
+            Instruction::Push30(_) => 30,
+            Instruction::Push31(_) => 31,
+            Instruction::Push32(_) => 32,
+            _ => 0
+        };
+        inst_additional_size + 1
+    }
+}
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
         match self {
@@ -205,7 +245,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_change),
                     mem: Default::default(),
-                    pc: (pc, pc + 1),
+                    pc: (pc, pc + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -219,7 +259,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -233,7 +273,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -247,7 +287,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -261,7 +301,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -275,7 +315,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -289,7 +329,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -303,7 +343,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -317,7 +357,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -344,7 +384,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -364,7 +404,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -384,7 +424,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -404,7 +444,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -424,7 +464,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -444,7 +484,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -460,7 +500,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -476,7 +516,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -492,7 +532,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -509,7 +549,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -527,7 +567,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -544,7 +584,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -564,7 +604,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -578,7 +618,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -592,7 +632,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -606,7 +646,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -621,7 +661,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -630,12 +670,12 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::CallDataSize => {
                 let stack = mach.stack();
                 let call_data_sz = call_data_size().apply(&[]).as_bv().unwrap();
-                let stack_diff = StackChange::with_ops(vec![pop(), push(call_data_sz.into())]);
+                let stack_diff = StackChange::with_ops(vec![push(call_data_sz.into())]);
 
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -652,7 +692,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -667,7 +707,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -685,7 +725,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -699,7 +739,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -713,7 +753,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -728,7 +768,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -742,7 +782,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -756,7 +796,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_diff),
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -773,7 +813,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 };
                 MachineRecord {
                     stack: Some(stack_rec),
-                    pc: (pc, pc + 1),
+                    pc: (pc, pc + self.byte_size()),
                     mem: Default::default(),
                     constraints: None,
                     halt: false,
@@ -793,7 +833,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(StackChange::with_ops(vec![pop(), push(val_mem)])),
                     mem: Some(mem_change),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     halt: false,
                     storage: None,
                     constraints: None,
@@ -821,7 +861,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                     storage: None,
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                 }
             }
             Instruction::MStore8 => {
@@ -851,7 +891,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                     halt: false,
                     storage: None,
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                 }
             }
             Instruction::SLoad => {
@@ -872,7 +912,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                             idx: key.clone(),
                         }],
                     }),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                 }
@@ -898,12 +938,28 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     stack: Some(stack_rec),
                     mem: None,
                     storage: Some(storage_change),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     halt: false,
                 }
             }
-            Instruction::Jump => todo!(),
+            Instruction::Jump => {
+                let jump_dest = mach.stack().peek().unwrap();
+                let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
+                let stack_rec = StackChange {
+                    pop_qty: 1,
+                    push_qty: 0,
+                    ops: vec![StackOp::Pop]
+                };
+                MachineRecord {
+                    stack: Some(stack_rec),
+                    pc: (mach.pc(), jump_dest_concrete),
+                    constraints: None,
+                    mem: Default::default(),
+                    halt: false,
+                    storage: None,
+                }
+            },
             Instruction::JumpI => {
                 let jump_dest = mach.stack().peek().unwrap();
                 let cond = mach.stack().peek_nth(1).unwrap();
@@ -937,7 +993,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 };
                 MachineRecord {
                     stack: Some(stack_rec),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     constraints: None,
                     mem: Default::default(),
                     halt: false,
@@ -954,14 +1010,23 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack,
                     mem: Default::default(),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     halt: false,
                     storage: None,
                     constraints: None,
                 }
             }
             Instruction::Gas => todo!(),
-            Instruction::JumpDest => todo!(),
+            Instruction::JumpDest => {
+                MachineRecord {
+                    stack: None,
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
+                    mem: Default::default(),
+                    halt: false,
+                    storage: None,
+                    constraints: None,
+                }
+            },
             Instruction::Push1(bv) => {
                 let new_bv = bv.as_ref().zero_ext(31).into();
 
@@ -969,7 +1034,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -983,7 +1048,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -997,7 +1062,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1011,7 +1076,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1025,7 +1090,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1039,7 +1104,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1053,7 +1118,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1067,7 +1132,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1081,7 +1146,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1095,7 +1160,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1109,7 +1174,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1123,7 +1188,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1137,7 +1202,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1151,7 +1216,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1165,7 +1230,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1179,7 +1244,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1193,7 +1258,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1207,7 +1272,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1221,7 +1286,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1235,7 +1300,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1249,7 +1314,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1263,7 +1328,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1277,7 +1342,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1291,7 +1356,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1305,7 +1370,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1319,7 +1384,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1333,7 +1398,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1347,7 +1412,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1361,7 +1426,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1375,7 +1440,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1389,7 +1454,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1401,7 +1466,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
@@ -1480,7 +1545,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 MachineRecord {
                     stack: Some(stack_change),
                     mem: Default::default(),
-                    pc: (pc, pc + 1),
+                    pc: (pc, pc + self.byte_size()),
                     constraints: None,
                     halt: false,
                     storage: None,
@@ -1498,7 +1563,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
 
                 MachineRecord {
                     stack: Some(StackChange::with_ops(ops)),
-                    pc: (mach.pc(), mach.pc() + 1),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
                     mem: Default::default(),
                     halt: false,
                     storage: None,
