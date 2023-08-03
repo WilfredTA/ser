@@ -33,7 +33,7 @@ pub trait Machine<const STACK_ITEM_SZ: usize> {
 
     // All possible final states
     fn exec(&mut self) -> Execution;
-    fn pgm(&self) ->Program;
+    fn pgm(&self) -> Program;
     fn state(&self) -> Self::State;
     fn state_ref(&self) -> &Self::State;
     fn state_ref_mut(&mut self) -> &mut Self::State;

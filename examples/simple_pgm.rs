@@ -8,7 +8,7 @@ pub const SUPERSIMPLE: &str = r#"604260005260206000F3"#;
 fn main() {
     let pgm = Parser::with_pgm(SUPERSIMPLE).parse();
     let mut evm = Evm::new(pgm);
-    
+
     let execution_trace = evm.exec();
     {
         let leaf = execution_trace.states.leaves();
@@ -20,7 +20,10 @@ fn main() {
         assert_eq!(bvi(66), mem_val);
     }
 
-
     let tree_flattened = execution_trace.states.into_iter().collect::<Vec<_>>();
-    eprintln!("Nodes in tree: {}\nTree Nodes: {:#?}", tree_flattened.len(), tree_flattened);
+    eprintln!(
+        "Nodes in tree: {}\nTree Nodes: {:#?}",
+        tree_flattened.len(),
+        tree_flattened
+    );
 }

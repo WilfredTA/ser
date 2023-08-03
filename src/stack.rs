@@ -1,4 +1,4 @@
-use crate::{record::StackChange, bvi};
+use crate::{bvi, record::StackChange};
 use std::fmt::{Debug, Formatter};
 
 use super::smt::*;
@@ -44,33 +44,38 @@ impl<const SZ: usize> Stack<SZ> {
     }
 
     // where n is stack modulo top element;
-    pub (crate) fn swap_nth(&mut self, swap_depth: usize) {
+    pub(crate) fn swap_nth(&mut self, swap_depth: usize) {
         eprintln!("SWAP EXECUTING AT DEPTH: {}", swap_depth);
         if swap_depth < self.size() {
             let mut new_stack = self.stack.clone();
             let top_idx = self.size - 1;
             let swap_idx = self.size - swap_depth - 1;
             let top = self.peek().cloned().unwrap();
-            let swapped = self.peek_nth(swap_depth).cloned().expect(
-                &format!("stack too deep to swap with depth {}. Stack size: {}", swap_depth, self.size())
-            );
+            let swapped = self.peek_nth(swap_depth).cloned().expect(&format!(
+                "stack too deep to swap with depth {}. Stack size: {}",
+                swap_depth,
+                self.size()
+            ));
             eprintln!("STACK BEFORE SWAP: {:#?}", new_stack);
-            new_stack = new_stack.into_iter().enumerate().map(move |(idx, val)| {
-                if idx == swap_idx {
-                    return top.clone();
-                } else if idx == top_idx {
-                    return swapped.clone();
-                } else {
-                    val
-                }
-            }).collect::<SmallVec<_>>();
+            new_stack = new_stack
+                .into_iter()
+                .enumerate()
+                .map(move |(idx, val)| {
+                    if idx == swap_idx {
+                        return top.clone();
+                    } else if idx == top_idx {
+                        return swapped.clone();
+                    } else {
+                        val
+                    }
+                })
+                .collect::<SmallVec<_>>();
             eprintln!("STACK AFTER SWAP: {:#?}", new_stack);
             // new_stack.remove(swap_idx);
             // new_stack.insert(swap_idx, top);
             // new_stack.pop();
             // new_stack.push(swapped);
             self.stack = new_stack;
-            
         } else {
             eprintln!("WILL NOT SWAP");
         }
@@ -93,7 +98,7 @@ impl<const SZ: usize> MachineComponent for Stack<SZ> {
             pop_qty,
             push_qty,
             ops,
-            swap_depth
+            swap_depth,
         } = rec;
 
         let mut new_stack = self.clone();
@@ -102,14 +107,15 @@ impl<const SZ: usize> MachineComponent for Stack<SZ> {
             crate::record::StackOp::Push(v) => new_stack.push(v.clone()),
             crate::record::StackOp::Pop => {
                 new_stack.pop();
-            },
-            crate::record::StackOp::Swap(depth) => {
-
             }
+            crate::record::StackOp::Swap(depth) => {}
         });
-       
+
         if swap_depth > 0 {
-            eprintln!("SWAP OCCURRING of DEPTH {}. STACK BEFORE: {:#?}", swap_depth, new_stack);
+            eprintln!(
+                "SWAP OCCURRING of DEPTH {}. STACK BEFORE: {:#?}",
+                swap_depth, new_stack
+            );
             new_stack.swap_nth(swap_depth as usize);
             eprintln!("STACK AFTER {:#?}", new_stack);
         }
@@ -118,7 +124,6 @@ impl<const SZ: usize> MachineComponent for Stack<SZ> {
         self.size = new_stack.size;
     }
 }
-
 
 #[test]
 fn test_swap() {
@@ -130,5 +135,4 @@ fn test_swap() {
     stack.swap_nth(2);
     assert_eq!(stack.peek().cloned().unwrap(), bvi(2));
     assert_eq!(stack.peek_nth(2).cloned().unwrap(), bvi(2));
-
 }

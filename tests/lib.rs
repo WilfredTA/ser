@@ -16,7 +16,7 @@ fn can_run_simple_parsed_pgm() {
 
     {
         let sat_branches = evm.exec();
-       
+
         let leaf = sat_branches.states.leaves();
         assert_eq!(1, leaf.len());
         let final_tree = leaf.first().unwrap().clone();
@@ -31,7 +31,6 @@ fn can_run_simple_storage_pgm() {
     let pgm = Parser::with_pgm(STORAGE_SIMPLE).parse();
     let mut evm = Evm::new(pgm);
 
-    
     let execution = evm.exec();
     let leaf = execution.states.leaves();
     assert_eq!(2, leaf.len());
@@ -41,7 +40,6 @@ fn can_run_simple_storage_pgm() {
     let mut mem_val = final_tree.val.mem_read(bvi(64));
     mem_val.simplify();
     assert_eq!(bvi(128), mem_val);
-    
 }
 
 #[test]
@@ -49,11 +47,10 @@ fn can_run_counter_with_storage_mapping_pgm() {
     let pgm = Parser::with_pgm(COUNTER_WITH_STORAGE_MAPPING).parse();
     let mut evm = Evm::new(pgm);
 
-    
     let execution = evm.exec();
     let leaf = execution.states.leaves();
     assert_eq!(2, leaf.len());
-   // eprintln!("LEAVES: {:#?}", leaf);
+    // eprintln!("LEAVES: {:#?}", leaf);
 }
 
 /*
@@ -99,9 +96,14 @@ fn test_swap2_jumpi_revert() {
     // Should have two paths: one reachable and one not. The reachable path should be the one in which there is a revert
     let reachability_report = Evm::exec_check(execution);
     assert_eq!(2, reachability_report.len());
-    assert_eq!(SatResult::Sat, reachability_report.first().unwrap().1.unwrap());
-    assert_eq!(SatResult::Unsat, reachability_report.get(1).unwrap().1.unwrap());
-  
+    assert_eq!(
+        SatResult::Sat,
+        reachability_report.first().unwrap().1.unwrap()
+    );
+    assert_eq!(
+        SatResult::Unsat,
+        reachability_report.get(1).unwrap().1.unwrap()
+    );
 }
 
 #[test]
@@ -112,6 +114,6 @@ fn test_swap3_jumpi_return() {
     //eprintln!("Execution tree: {:#?}", execution.states);
     let final_states = execution.states.leaves();
     eprintln!("LEAVES: {:#?}", final_states);
-    assert_eq!(2, final_states.len()); 
+    assert_eq!(2, final_states.len());
     assert!(false);
 }

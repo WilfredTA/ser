@@ -1,10 +1,5 @@
-
-
-
 pub struct ExecutionContext {
-    block: BlockContext
+    block: BlockContext,
 }
 
-pub struct BlockContext {
-    
-}
+pub struct BlockContext {}

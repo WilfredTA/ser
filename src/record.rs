@@ -38,7 +38,7 @@ pub enum MemOp {
 pub enum StackOp<const SZ: usize> {
     Push(BitVec<SZ>),
     Pop,
-    Swap(usize)
+    Swap(usize),
 }
 
 #[derive(Default, Clone, Debug)]
@@ -66,7 +66,7 @@ impl<const SZ: usize> StackChange<SZ> {
         ops.iter().for_each(|op| match op {
             StackOp::Push(_) => push_qty += 1,
             StackOp::Pop => pop_qty += 1,
-            _ => ()
+            _ => (),
         });
 
         Self {

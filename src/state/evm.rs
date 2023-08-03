@@ -12,7 +12,6 @@ use crate::{
 };
 use z3_ext::ast::Bool;
 
-
 #[derive(Clone, Default)]
 pub struct EvmState {
     pub memory: Memory,
@@ -23,7 +22,6 @@ pub struct EvmState {
     pub address: Address,
     pub halt: bool,
 }
-
 
 impl MachineComponent for EvmState {
     type Record = MachineRecord<32>;
@@ -62,14 +60,17 @@ impl<'ctx> EvmState {
     pub fn set_pc(&mut self, new_pc: usize) {
         self.pc = new_pc;
         if self.pc >= self.pgm.get_size() {
-            eprintln!("SET PC--- PC: {} -- PGM SIZE: {}", self.pc, self.pgm.get_size());
+            eprintln!(
+                "SET PC--- PC: {} -- PGM SIZE: {}",
+                self.pc,
+                self.pgm.get_size()
+            );
             self.halt = true;
         }
     }
 
     pub fn inc_pc(&mut self) {
         let curr_inst = self.curr_instruction();
-        
 
         self.set_pc(self.pc + curr_inst.byte_size());
     }
@@ -77,11 +78,12 @@ impl<'ctx> EvmState {
         self.pc < self.pgm.get_size() && !self.halt
     }
     pub fn curr_instruction(&self) -> Instruction {
-        self.pgm.get(self.pc).expect(&format!("Expected instruction at pc: {}", self.pc))
+        self.pgm
+            .get(self.pc)
+            .expect(&format!("Expected instruction at pc: {}", self.pc))
     }
     pub fn curr_inst_debug(&self) -> Instruction {
         if !self.can_continue() {
-
             eprintln!("Curr instruction debug requested but cannot continue");
         }
         self.pgm.get(self.pc).unwrap()
@@ -91,20 +93,25 @@ impl<'ctx> EvmState {
 impl std::fmt::Display for EvmState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         //write!(f, "Pc: {}\nHalted: {}\nStack: {:?}\n{}", self.pc(), self.halt, self.stack(), self.mem())
-        write!(f, "Pc: {}, Stack: {:#?} halt: {:#?}", self.pc(), self.stack(), self.halt)
+        write!(
+            f,
+            "Pc: {}, Stack: {:#?} halt: {:#?}",
+            self.pc(),
+            self.stack(),
+            self.halt
+        )
     }
 }
 
 impl std::fmt::Debug for EvmState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("EvmState").field("stack", &self.stack)
-        .field("pc", &self.pc)
-        .field("address", &self.address)
-        .field("halt", &self.halt)
-        .field("instruction", &self.curr_inst_debug())
-        .field("pgm size", &self.pgm.size)
-        .finish()
+        f.debug_struct("EvmState")
+            .field("stack", &self.stack)
+            .field("pc", &self.pc)
+            .field("address", &self.address)
+            .field("halt", &self.halt)
+            .field("instruction", &self.curr_inst_debug())
+            .field("pgm size", &self.pgm.size)
+            .finish()
     }
 }
-
-

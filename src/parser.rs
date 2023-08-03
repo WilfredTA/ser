@@ -7,12 +7,15 @@ use ruint::Uint;
 #[derive(Default)]
 pub struct Parser<'a> {
     pgm: &'a str,
-    parsed: Program
+    parsed: Program,
 }
 
 impl<'a> Parser<'a> {
     pub fn with_pgm(pgm: &'a str) -> Self {
-        Self { pgm, ..Default::default() }
+        Self {
+            pgm,
+            ..Default::default()
+        }
     }
 
     pub fn parse(&self) -> Program {
@@ -56,7 +59,7 @@ impl<'a> Parser<'a> {
         Program {
             map: pgm_map,
             pgm,
-            size: idx + 1
+            size: idx + 1,
         }
     }
 }
@@ -69,7 +72,7 @@ fn parse_push(bytes: &[u8]) -> (Instruction, u8, Vec<u8>) {
     //eprintln!("Bytes len is {}", bytes.len());
     if bytes.len() - 1 < push_size as usize {
         let pad_len = push_size as usize - bytes.len() + 1;
-      //  eprintln!("pad len: {}", pad_len);
+        //  eprintln!("pad len: {}", pad_len);
         let mut new_bytes = bytes.to_vec();
         for _ in (0..pad_len) {
             new_bytes.push(0);
@@ -527,7 +530,7 @@ impl From<u8> for Instruction {
 pub struct Program {
     pub map: HashMap<usize, Instruction>,
     pgm: Vec<Instruction>,
-    pub size: usize
+    pub size: usize,
 }
 
 impl Program {
@@ -539,10 +542,6 @@ impl Program {
         self.size
     }
 }
-
-
-
-
 
 #[test]
 fn is_push_works() {
@@ -587,7 +586,7 @@ fn can_parse_simple_pgm() {
 
     let pgm = Parser::with_pgm(COUNTER_SOL_CODE).parse();
     let sixty_four: BitVec<32> = bvi(0x0040);
-   // eprintln!("SIXTY FOUR: {:#?}", sixty_four);
+    // eprintln!("SIXTY FOUR: {:#?}", sixty_four);
     let expected = vec![
         Instruction::Push1(bvi(0x42)),
         Instruction::Push1(bvi(0)),
@@ -648,9 +647,9 @@ fn can_parse_larger_pgm_with_storage() {
     let pgm_first_30 = (&pgm.pgm[..33]).to_vec();
     assert_eq!(expected_first_30, pgm_first_30);
     let pgm_map = pgm.map.into_iter().collect::<Vec<_>>();
-  
+
     eprintln!("PROGRAM MAP INDICES: {:#?}", pgm_map);
     let pgm_enumd = pgm_first_30.into_iter().enumerate().collect::<Vec<_>>();
     eprintln!("Enumerated pgm indices: {:#?}", pgm_enumd);
-   // assert_eq!(pgm_enumd, pgm_map);
+    // assert_eq!(pgm_enumd, pgm_map);
 }

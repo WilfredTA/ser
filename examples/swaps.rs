@@ -43,8 +43,12 @@ fn main() {
     // Should have two paths: one reachable and one not. The reachable path should be the one in which there is a revert
     let reachability_report = Evm::exec_check(execution);
     assert_eq!(2, reachability_report.len());
-    assert_eq!(SatResult::Sat, reachability_report.first().unwrap().1.unwrap());
-    assert_eq!(SatResult::Unsat, reachability_report.get(1).unwrap().1.unwrap());
-
-
+    assert_eq!(
+        SatResult::Sat,
+        reachability_report.first().unwrap().1.unwrap()
+    );
+    assert_eq!(
+        SatResult::Unsat,
+        reachability_report.get(1).unwrap().1.unwrap()
+    );
 }

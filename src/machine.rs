@@ -117,50 +117,54 @@ impl<'ctx> Evm<'ctx> {
         }
     }
 
-   
     // A path from a node is the current node and the union of the paths of its children
-    pub fn paths(trace: Execution<'ctx>) -> Vec<Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>>{
-
+    pub fn paths(trace: Execution<'ctx>) -> Vec<Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>> {
         let mut paths_collected = vec![];
 
         let mut curr_path = vec![];
         let tree = Some(Box::new(trace.states));
         StateTree::find_paths(&tree, &mut curr_path, &mut paths_collected);
         paths_collected
-
     }
 
-
-   pub fn exec_check(trace: Execution<'ctx>) -> Vec<(Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>, Option<SatResult>, Option<String>)> {
+    pub fn exec_check(
+        trace: Execution<'ctx>,
+    ) -> Vec<(
+        Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>,
+        Option<SatResult>,
+        Option<String>,
+    )> {
         let mut solver = z3_ext::Solver::new(ctx());
         let paths = Self::paths(trace);
-        let reachable = paths.into_iter().map(|path| {
-            let mut result = (path.clone(), None, None);
-            solver.push();
-            path.iter().for_each(|step| {
-                if let Some(constraint) = step.2.clone() {
-                    solver.assert(&constraint);
+        let reachable = paths
+            .into_iter()
+            .map(|path| {
+                let mut result = (path.clone(), None, None);
+                solver.push();
+                path.iter().for_each(|step| {
+                    if let Some(constraint) = step.2.clone() {
+                        solver.assert(&constraint);
+                    }
+                });
+                match solver.check() {
+                    SatResult::Sat => {
+                        let model = solver.get_model();
+                        result.1 = Some(SatResult::Sat);
+
+                        result.2 = model.map(|m| m.to_string());
+                    }
+                    SatResult::Unsat => {
+                        result.1 = Some(SatResult::Unsat);
+                    }
+                    SatResult::Unknown => {
+                        result.1 = Some(SatResult::Unknown);
+                    }
                 }
-            });
-            match solver.check() {
-                SatResult::Sat => {
-                    let model = solver.get_model();
-                    result.1 = Some(SatResult::Sat);
-                    
-                    result.2 = model.map(|m| m.to_string());
-                },
-                SatResult::Unsat => {  
-                    result.1 = Some(SatResult::Unsat);
-                },
-                SatResult::Unknown => {
-                    result.1 = Some(SatResult::Unknown);
-                }
-            }
-            solver.pop(1);
-            result
-        }).collect::<Vec<_>>();
+                solver.pop(1);
+                result
+            })
+            .collect::<Vec<_>>();
         reachable
-       
     }
 
     // pub fn exec_check(&mut self) -> Vec<(ExecBranch, Option<Model<'ctx>>)> {
@@ -217,26 +221,33 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
                     step.halted_left(),
                     step.halted_right()
                 );
-                eprintln!("LEFT ID: {:#?} RIGHT ID: {:#?}", step.left_id(), step.right_id());
+                eprintln!(
+                    "LEFT ID: {:#?} RIGHT ID: {:#?}",
+                    step.left_id(),
+                    step.right_id()
+                );
                 // if !step.halted_right() {
                 //     let continue_from_right = step.right_id();
-                    if let Some(right_id) = step.right_id() {
-                        ids.push(right_id.id());
-                        let nxt_right_step = exec.step_from_mut(right_id);
-                        step_recs.push(nxt_right_step);
-                    }
+                if let Some(right_id) = step.right_id() {
+                    ids.push(right_id.id());
+                    let nxt_right_step = exec.step_from_mut(right_id);
+                    step_recs.push(nxt_right_step);
+                }
                 //}
                 // if !step.halted_left() {
                 //     let continue_from_left = step.left_id();
-                    if let Some(left_id) = step.left_id() {
-                        ids.push(left_id.id());
-                        let nxt_step = exec.step_from_mut(left_id);
-                        step_recs.push(nxt_step);
-                    }
-               // }
+                if let Some(left_id) = step.left_id() {
+                    ids.push(left_id.id());
+                    let nxt_step = exec.step_from_mut(left_id);
+                    step_recs.push(nxt_step);
+                }
+                // }
 
                 if step.halted_left() && step.halted_right() {
-                    eprintln!("Both have halted... Here are the step recs left: {:#?}", step_recs);
+                    eprintln!(
+                        "Both have halted... Here are the step recs left: {:#?}",
+                        step_recs
+                    );
                 }
             } else {
                 break;
@@ -246,7 +257,6 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
 
         exec
     }
-
 
     // fn exec(&mut self) -> Vec<ExecBranch<'ctx>> {
     //     let mut curr_state = self.states.val.clone();
@@ -443,7 +453,7 @@ fn test_mem_store_mem_load() {
         // Instruction::MLoad,
     ];
 
-   // let mut evm = Evm::new(pgm);
+    // let mut evm = Evm::new(pgm);
 
     // {
     //     let sat_branches = evm.exec_check();

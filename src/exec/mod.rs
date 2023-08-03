@@ -81,7 +81,10 @@ impl<'ctx> Execution<'ctx> {
         eprintln!("CHANGE REC IN EXEC: {:#?}", change_rec);
         let is_branch = change_rec.constraints.is_some();
         if is_branch {
-            eprintln!("IS BRANCH HERE:\nChange record {:#?}\nCurr_state pc: {}", change_rec, curr_pc);
+            eprintln!(
+                "IS BRANCH HERE:\nChange record {:#?}\nCurr_state pc: {}",
+                change_rec, curr_pc
+            );
         }
         curr_state.apply_change(change_rec.clone());
         let mut report = StepRecord::new(false, change_rec.halt);
@@ -169,7 +172,10 @@ impl<'ctx> Execution<'ctx> {
         let is_branch = change_rec.constraints.is_some();
         curr_state.apply_change(change_rec.clone());
         if is_branch {
-            eprintln!("IS BRANCH HERE:\nChange record {:#?}\nCurr_state pc: {}", change_rec, curr_pc);
+            eprintln!(
+                "IS BRANCH HERE:\nChange record {:#?}\nCurr_state pc: {}",
+                change_rec, curr_pc
+            );
         }
         if change_rec.halt {
             eprintln!("Halt occurred here: {:#?}", change_rec);
@@ -182,15 +188,13 @@ impl<'ctx> Execution<'ctx> {
             // an additional constraint
             // and left tree (by convention left path represents straight line execution) is the negation of such constraint
             let mut left_state = curr_state.clone();
-            let right_tree = StateTree::from((left_state.clone(), change_rec.constraints.clone().unwrap()));
+            let right_tree =
+                StateTree::from((left_state.clone(), change_rec.constraints.clone().unwrap()));
             left_state.set_pc(curr_pc + 1);
             report.halted_left = left_state.halt;
 
-            let left_tree = StateTree::from((
-                left_state,
-                change_rec.constraints.unwrap().not(),
-            ));
-            
+            let left_tree = StateTree::from((left_state, change_rec.constraints.unwrap().not()));
+
             let left_tree_ref = self.states.insert_left_of(left_tree, node_id.id());
             let right_tree_ref = self.states.insert_right_of(right_tree, node_id.id());
             // curr_state_tree.left = Some(Box::new(left_tree));

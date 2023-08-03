@@ -184,10 +184,14 @@ fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
 }
 
 fn exec_swap_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
-    
     eprintln!("EXEC SWAP NTH CALLED. N: {}", n);
     MachineRecord {
-        stack: Some(StackChange { pop_qty: 0, push_qty: 0, swap_depth: n, ops: vec![] }),
+        stack: Some(StackChange {
+            pop_qty: 0,
+            push_qty: 0,
+            swap_depth: n,
+            ops: vec![],
+        }),
         pc: (mach.pc(), mach.pc() + 1),
         mem: Default::default(),
         halt: false,
@@ -201,24 +205,24 @@ impl Instruction {
         let inst_additional_size: usize = match self {
             Instruction::Push1(_) => 1,
             Instruction::Push2(_) => 2,
-            Instruction::Push3(_) =>3,
-            Instruction::Push4(_) =>4,
-            Instruction::Push5(_) =>5,
-            Instruction::Push6(_) =>6,
-            Instruction::Push7(_) =>7,
-            Instruction::Push8(_) =>8,
-            Instruction::Push9(_) =>9,
-            Instruction::Push10(_) => 10 ,
-            Instruction::Push11(_) => 11 ,
+            Instruction::Push3(_) => 3,
+            Instruction::Push4(_) => 4,
+            Instruction::Push5(_) => 5,
+            Instruction::Push6(_) => 6,
+            Instruction::Push7(_) => 7,
+            Instruction::Push8(_) => 8,
+            Instruction::Push9(_) => 9,
+            Instruction::Push10(_) => 10,
+            Instruction::Push11(_) => 11,
             Instruction::Push12(_) => 12,
-            Instruction::Push13(_) => 13 ,
+            Instruction::Push13(_) => 13,
             Instruction::Push14(_) => 14,
             Instruction::Push15(_) => 15,
             Instruction::Push16(_) => 16,
             Instruction::Push17(_) => 17,
             Instruction::Push18(_) => 18,
             Instruction::Push19(_) => 19,
-            Instruction::Push20(_) => 20 ,
+            Instruction::Push20(_) => 20,
             Instruction::Push21(_) => 21,
             Instruction::Push22(_) => 22,
             Instruction::Push23(_) => 23,
@@ -231,7 +235,7 @@ impl Instruction {
             Instruction::Push30(_) => 30,
             Instruction::Push31(_) => 31,
             Instruction::Push32(_) => 32,
-            _ => 0
+            _ => 0,
         };
         inst_additional_size + 1
     }
@@ -967,7 +971,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     pop_qty: 1,
                     push_qty: 0,
                     swap_depth: 0,
-                    ops: vec![StackOp::Pop]
+                    ops: vec![StackOp::Pop],
                 };
                 MachineRecord {
                     stack: Some(stack_rec),
@@ -977,7 +981,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false,
                     storage: None,
                 }
-            },
+            }
             Instruction::JumpI => {
                 let jump_dest = mach.stack().peek().unwrap();
                 let cond = mach.stack().peek_nth(1).unwrap();
@@ -1038,15 +1042,13 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 }
             }
             Instruction::Gas => todo!(),
-            Instruction::JumpDest => {
-                MachineRecord {
-                    stack: None,
-                    pc: (mach.pc(), mach.pc() + self.byte_size()),
-                    mem: Default::default(),
-                    halt: false,
-                    storage: None,
-                    constraints: None,
-                }
+            Instruction::JumpDest => MachineRecord {
+                stack: None,
+                pc: (mach.pc(), mach.pc() + self.byte_size()),
+                mem: Default::default(),
+                halt: false,
+                storage: None,
+                constraints: None,
             },
             Instruction::Push1(bv) => {
                 let new_bv = bv.as_ref().zero_ext(31).into();

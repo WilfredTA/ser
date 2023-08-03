@@ -1,7 +1,7 @@
 use crate::bvi;
+use ruint::aliases::U1;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
-use ruint::aliases::U1;
 use z3_ext::ast::{Ast, BV};
 
 use crate::record::{Index, MemChange, MemOp};
@@ -18,7 +18,6 @@ impl MachineComponent for Memory {
     type Record = MemChange;
 
     fn apply_change(&mut self, rec: Self::Record) {
-       
         let MemChange { ops_log } = rec;
         let mut highest_idx = self.highest_idx;
         ops_log.into_iter().for_each(|op| match op {
@@ -27,7 +26,10 @@ impl MachineComponent for Memory {
                 val.simplify();
                 let mut idx = idx;
                 idx.simplify();
-                eprintln!("MEM WRITE FOR MEM APPLY: idx: {:#?}, value: {:#?}", idx, val);
+                eprintln!(
+                    "MEM WRITE FOR MEM APPLY: idx: {:#?}, value: {:#?}",
+                    idx, val
+                );
                 let idx_cmp: usize = idx.clone().into();
                 if idx_cmp > highest_idx {
                     highest_idx = idx_cmp;
@@ -78,10 +80,10 @@ impl Memory {
         let idx: usize = idx.into();
         let mut bytes = vec![];
         let mut mem = self.inner.clone();
-       // eprintln!(" MEM IN READ WORD: {:#?}", mem);
+        // eprintln!(" MEM IN READ WORD: {:#?}", mem);
         while i < 32 {
             let idx = idx + 31;
-            
+
             let val = mem.get(idx - i).unwrap().as_ref().clone();
             //eprintln!("MEM VAL IN READ WORD FOR IDX - i:\nmem loc {:#?}\nval: {:#?}", (idx - i), val);
             bytes.push(val);
@@ -96,7 +98,6 @@ impl Memory {
             } else {
                 new_bv_inner = new_bv_inner.concat(&b);
             }
-
         });
         BitVec {
             inner: BVType::Z3(new_bv_inner),
@@ -124,14 +125,15 @@ impl Memory {
     }
 }
 
-
 impl std::fmt::Display for Memory {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let mut mem_str = format!("Memory:\nSize: {} Highest Index: {}", self.size(), self.highest_idx);
+        let mut mem_str = format!(
+            "Memory:\nSize: {} Highest Index: {}",
+            self.size(),
+            self.highest_idx
+        );
         self.inner.iter().enumerate().for_each(|(i, slot)| {
-           
-            let str_to_push = 
-            if slot.as_ref().is_const() {
+            let str_to_push = if slot.as_ref().is_const() {
                 let slot_str = format!("{} --> {}\n", i, slot.as_ref());
                 slot_str
             } else {
@@ -140,7 +142,6 @@ impl std::fmt::Display for Memory {
                 slot_str
             };
             mem_str = format!("{}{}", mem_str, str_to_push);
-          
         });
         write!(f, "{}", mem_str)
     }

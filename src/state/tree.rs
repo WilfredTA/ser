@@ -1,5 +1,5 @@
 use super::evm::*;
-use crate::{ctx, z3_ext::ast::Ast, z3_ext::ast::Bool, instruction::Instruction};
+use crate::{ctx, instruction::Instruction, z3_ext::ast::Ast, z3_ext::ast::Bool};
 use std::borrow::BorrowMut;
 use uuid::Uuid;
 
@@ -49,8 +49,6 @@ pub struct StateTree<'ctx> {
     pub(crate) left: Option<Box<StateTree<'ctx>>>,
     pub(crate) right: Option<Box<StateTree<'ctx>>>,
 }
-
-
 
 impl<'ctx> From<(EvmState, Bool<'ctx>)> for StateTree<'ctx> {
     fn from(t: (EvmState, Bool<'ctx>)) -> Self {
@@ -119,25 +117,30 @@ impl<'ctx> StateTree<'ctx> {
         items
     }
 
-    pub fn find_paths(node: &Option<Box<StateTree<'ctx>>>, current_path: &mut Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>, all_paths: &mut Vec<Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>> ) {
+    pub fn find_paths(
+        node: &Option<Box<StateTree<'ctx>>>,
+        current_path: &mut Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>,
+        all_paths: &mut Vec<Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>>,
+    ) {
         if let Some(ref node) = *node {
-            current_path.push((node.id.clone(), node.val.curr_instruction(), node.path_condition.clone()));
-    
+            current_path.push((
+                node.id.clone(),
+                node.val.curr_instruction(),
+                node.path_condition.clone(),
+            ));
+
             if node.left.is_none() && node.right.is_none() {
                 all_paths.push(current_path.clone());
             } else {
                 Self::find_paths(&node.left, current_path, all_paths);
                 Self::find_paths(&node.right, current_path, all_paths);
             }
-    
+
             current_path.pop();
         }
     }
     pub fn inorder_stateless(&self) -> Vec<(NodeId, Option<Bool<'ctx>>)> {
-        let mut items = vec![(
-            self.id.clone(),
-            self.path_condition.clone(),
-        )];
+        let mut items = vec![(self.id.clone(), self.path_condition.clone())];
 
         if let Some(left) = &self.left {
             let left_tree_inorder = left.inorder_stateless();
