@@ -1,5 +1,5 @@
 use super::evm::*;
-use crate::{ctx, z3_ext::ast::Ast, z3_ext::ast::Bool};
+use crate::{ctx, z3_ext::ast::Ast, z3_ext::ast::Bool, instruction::Instruction};
 use std::borrow::BorrowMut;
 use uuid::Uuid;
 
@@ -114,6 +114,37 @@ impl<'ctx> StateTree<'ctx> {
         }
         if let Some(right) = &self.right {
             let right_tree_inorder = right.inorder();
+            items.extend(right_tree_inorder);
+        }
+        items
+    }
+
+    pub fn find_paths(node: &Option<Box<StateTree<'ctx>>>, current_path: &mut Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>, all_paths: &mut Vec<Vec<(NodeId, Instruction, Option<Bool<'ctx>>)>> ) {
+        if let Some(ref node) = *node {
+            current_path.push((node.id.clone(), node.val.curr_instruction(), node.path_condition.clone()));
+    
+            if node.left.is_none() && node.right.is_none() {
+                all_paths.push(current_path.clone());
+            } else {
+                Self::find_paths(&node.left, current_path, all_paths);
+                Self::find_paths(&node.right, current_path, all_paths);
+            }
+    
+            current_path.pop();
+        }
+    }
+    pub fn inorder_stateless(&self) -> Vec<(NodeId, Option<Bool<'ctx>>)> {
+        let mut items = vec![(
+            self.id.clone(),
+            self.path_condition.clone(),
+        )];
+
+        if let Some(left) = &self.left {
+            let left_tree_inorder = left.inorder_stateless();
+            items.extend(left_tree_inorder);
+        }
+        if let Some(right) = &self.right {
+            let right_tree_inorder = right.inorder_stateless();
             items.extend(right_tree_inorder);
         }
         items

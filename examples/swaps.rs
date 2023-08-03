@@ -2,7 +2,7 @@
 use ser::{
     bvc, bvi, conversion::*, machine::*, memory::*, parser::*, stack::*, storage::*, traits::*,
 };
-use z3::ast::*;
+use z3::{ast::*, SatResult};
 /*
 SHOULD REVERT:
 
@@ -40,5 +40,11 @@ fn main() {
     let pgm = Parser::with_pgm(SWAP2_JUMPI_REVERT).parse();
     let mut evm = Evm::new(pgm);
     let execution = evm.exec();
-    eprintln!("Execution tree: {:#?}", execution.states);
+    // Should have two paths: one reachable and one not. The reachable path should be the one in which there is a revert
+    let reachability_report = Evm::exec_check(execution);
+    assert_eq!(2, reachability_report.len());
+    assert_eq!(SatResult::Sat, reachability_report.first().unwrap().1.unwrap());
+    assert_eq!(SatResult::Unsat, reachability_report.get(1).unwrap().1.unwrap());
+
+
 }
