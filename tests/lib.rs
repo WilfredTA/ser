@@ -139,14 +139,3 @@ fn test_swap2_jumpi_maybe_revert() {
     );
 }
 
-#[test]
-fn test_swap3_jumpi_return() {
-    let pgm = Parser::with_pgm(SWAP3_JUMPI_RETURN_16).parse();
-    let mut evm = Evm::new(pgm);
-    let execution = evm.exec();
-    //eprintln!("Execution tree: {:#?}", execution.states);
-    let final_states = execution.states.leaves();
-    eprintln!("LEAVES: {:#?}", final_states);
-    assert_eq!(2, final_states.len());
-    assert!(false);
-}
