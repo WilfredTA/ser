@@ -38,12 +38,14 @@ pub enum MemOp {
 pub enum StackOp<const SZ: usize> {
     Push(BitVec<SZ>),
     Pop,
+    Swap(usize)
 }
 
 #[derive(Default, Clone, Debug)]
 pub struct StackChange<const SZ: usize> {
     pub pop_qty: u64,
     pub push_qty: u64,
+    pub swap_depth: u8,
     pub ops: Vec<StackOp<SZ>>,
 }
 
@@ -52,6 +54,7 @@ impl<const SZ: usize> StackChange<SZ> {
         Self {
             pop_qty: 0,
             push_qty: 1,
+            swap_depth: 0,
             ops: vec![StackOp::Push(val)],
         }
     }
@@ -63,11 +66,13 @@ impl<const SZ: usize> StackChange<SZ> {
         ops.iter().for_each(|op| match op {
             StackOp::Push(_) => push_qty += 1,
             StackOp::Pop => pop_qty += 1,
+            _ => ()
         });
 
         Self {
             push_qty,
             pop_qty,
+            swap_depth: 0,
             ops,
         }
     }
