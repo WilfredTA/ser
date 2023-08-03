@@ -45,7 +45,7 @@ pub enum StackOp<const SZ: usize> {
 pub struct StackChange<const SZ: usize> {
     pub pop_qty: u64,
     pub push_qty: u64,
-    pub swap_depth: u8,
+    pub swap_depth: usize,
     pub ops: Vec<StackOp<SZ>>,
 }
 

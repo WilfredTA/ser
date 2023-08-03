@@ -50,6 +50,8 @@ pub struct StateTree<'ctx> {
     pub(crate) right: Option<Box<StateTree<'ctx>>>,
 }
 
+
+
 impl<'ctx> From<(EvmState, Bool<'ctx>)> for StateTree<'ctx> {
     fn from(t: (EvmState, Bool<'ctx>)) -> Self {
         Self {

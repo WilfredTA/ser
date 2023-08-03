@@ -45,6 +45,7 @@ impl<const SZ: usize> Stack<SZ> {
 
     // where n is stack modulo top element;
     pub (crate) fn swap_nth(&mut self, swap_depth: usize) {
+        eprintln!("SWAP EXECUTING AT DEPTH: {}", swap_depth);
         if swap_depth < self.size() {
             let mut new_stack = self.stack.clone();
             let top_idx = self.size - 1;
@@ -53,10 +54,21 @@ impl<const SZ: usize> Stack<SZ> {
             let swapped = self.peek_nth(swap_depth).cloned().expect(
                 &format!("stack too deep to swap with depth {}. Stack size: {}", swap_depth, self.size())
             );
-            new_stack.remove(swap_idx);
-            new_stack.insert(swap_idx, top);
-            new_stack.pop();
-            new_stack.push(swapped);
+            eprintln!("STACK BEFORE SWAP: {:#?}", new_stack);
+            new_stack = new_stack.into_iter().enumerate().map(move |(idx, val)| {
+                if idx == swap_idx {
+                    return top.clone();
+                } else if idx == top_idx {
+                    return swapped.clone();
+                } else {
+                    val
+                }
+            }).collect::<SmallVec<_>>();
+            eprintln!("STACK AFTER SWAP: {:#?}", new_stack);
+            // new_stack.remove(swap_idx);
+            // new_stack.insert(swap_idx, top);
+            // new_stack.pop();
+            // new_stack.push(swapped);
             self.stack = new_stack;
             
         } else {

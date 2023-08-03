@@ -526,7 +526,7 @@ impl From<u8> for Instruction {
 #[derive(Default, Debug, Clone)]
 pub struct Program {
     pub map: HashMap<usize, Instruction>,
-    pub pgm: Vec<Instruction>,
+    pgm: Vec<Instruction>,
     pub size: usize
 }
 

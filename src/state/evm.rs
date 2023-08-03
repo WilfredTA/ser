@@ -13,7 +13,7 @@ use crate::{
 use z3_ext::ast::Bool;
 
 
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Default)]
 pub struct EvmState {
     pub memory: Memory,
     pub storage: AccountStorage,
@@ -61,7 +61,8 @@ impl<'ctx> EvmState {
     }
     pub fn set_pc(&mut self, new_pc: usize) {
         self.pc = new_pc;
-        if self.pc >= self.pgm.pgm.len() {
+        if self.pc >= self.pgm.get_size() {
+            eprintln!("SET PC--- PC: {} -- PGM SIZE: {}", self.pc, self.pgm.get_size());
             self.halt = true;
         }
     }
@@ -76,25 +77,34 @@ impl<'ctx> EvmState {
         self.pc < self.pgm.get_size() && !self.halt
     }
     pub fn curr_instruction(&self) -> Instruction {
-        if !self.can_continue() {
-            eprintln!(
-                "EVM STATE CANNOT CONTINUE; BUT CURR INST IS REQUESTED: {:#?}",
-                self
-            );
-            eprintln!(
-                "Getting curr inst.. curr pc: {} and curr pgm len: {}",
-                self.pc,
-                self.pgm.get_size()
-            );
-        }
-        
         self.pgm.get(self.pc).expect(&format!("Expected instruction at pc: {}", self.pc))
+    }
+    pub fn curr_inst_debug(&self) -> Instruction {
+        if !self.can_continue() {
+
+            eprintln!("Curr instruction debug requested but cannot continue");
+        }
+        self.pgm.get(self.pc).unwrap()
     }
 }
 
 impl std::fmt::Display for EvmState {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Pc: {}\nHalted: {}\nStack: {:?}\n{}", self.pc(), self.halt, self.stack(), self.mem())
-        
+        //write!(f, "Pc: {}\nHalted: {}\nStack: {:?}\n{}", self.pc(), self.halt, self.stack(), self.mem())
+        write!(f, "Pc: {}, Stack: {:#?} halt: {:#?}", self.pc(), self.stack(), self.halt)
     }
 }
+
+impl std::fmt::Debug for EvmState {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EvmState").field("stack", &self.stack)
+        .field("pc", &self.pc)
+        .field("address", &self.address)
+        .field("halt", &self.halt)
+        .field("instruction", &self.curr_inst_debug())
+        .field("pgm size", &self.pgm.size)
+        .finish()
+    }
+}
+
+

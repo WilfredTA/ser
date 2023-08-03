@@ -170,6 +170,7 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         let mut exec = Execution::new(self.states.val.clone(), self.pgm.clone());
         let first_step = exec.step_mut();
         step_recs.push(first_step);
+        let mut ids = vec![];
         loop {
             if let Some(step) = step_recs.pop() {
                 eprintln!(
@@ -177,24 +178,32 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
                     step.halted_left(),
                     step.halted_right()
                 );
-                if !step.halted_right() {
-                    let continue_from_right = step.right_id();
-                    if let Some(right_id) = continue_from_right {
+                eprintln!("LEFT ID: {:#?} RIGHT ID: {:#?}", step.left_id(), step.right_id());
+                // if !step.halted_right() {
+                //     let continue_from_right = step.right_id();
+                    if let Some(right_id) = step.right_id() {
+                        ids.push(right_id.id());
                         let nxt_right_step = exec.step_from_mut(right_id);
                         step_recs.push(nxt_right_step);
                     }
-                }
-                if !step.halted_left() {
-                    let continue_from_left = step.left_id();
-                    if let Some(left_id) = continue_from_left {
+                //}
+                // if !step.halted_left() {
+                //     let continue_from_left = step.left_id();
+                    if let Some(left_id) = step.left_id() {
+                        ids.push(left_id.id());
                         let nxt_step = exec.step_from_mut(left_id);
                         step_recs.push(nxt_step);
                     }
+               // }
+
+                if step.halted_left() && step.halted_right() {
+                    eprintln!("Both have halted... Here are the step recs left: {:#?}", step_recs);
                 }
             } else {
                 break;
             }
         }
+        eprintln!("All ids that were executed during a step: {:#?}", ids);
 
         exec
     }

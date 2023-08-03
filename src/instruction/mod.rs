@@ -185,9 +185,9 @@ fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
 
 fn exec_swap_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
     
-
+    eprintln!("EXEC SWAP NTH CALLED. N: {}", n);
     MachineRecord {
-        stack: Some(StackChange { pop_qty: 0, push_qty: 0, swap_depth: n as u8, ops: vec![] }),
+        stack: Some(StackChange { pop_qty: 0, push_qty: 0, swap_depth: n, ops: vec![] }),
         pc: (mach.pc(), mach.pc() + 1),
         mem: Default::default(),
         halt: false,
@@ -993,6 +993,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     push_qty: 0,
                     ops: vec![StackOp::Pop, StackOp::Pop],
                 };
+                eprintln!("JUMPI REACHED");
 
                 MachineRecord {
                     stack: Some(stack_rec),
@@ -1509,22 +1510,22 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::Dup14 => exec_dup_nth(mach, 14),
             Instruction::Dup15 => exec_dup_nth(mach, 15),
             Instruction::Dup16 => exec_dup_nth(mach, 16),
-            Instruction::Swap1 => exec_dup_nth(mach, 1),
-            Instruction::Swap2 => exec_dup_nth(mach, 2),
-            Instruction::Swap3 => exec_dup_nth(mach, 3),
-            Instruction::Swap4 => exec_dup_nth(mach, 4),
-            Instruction::Swap5 => exec_dup_nth(mach, 5),
-            Instruction::Swap6 => exec_dup_nth(mach, 6),
-            Instruction::Swap7 => exec_dup_nth(mach, 7),
-            Instruction::Swap8 => exec_dup_nth(mach, 8),
-            Instruction::Swap9 => exec_dup_nth(mach, 9),
-            Instruction::Swap10 => exec_dup_nth(mach, 10),
-            Instruction::Swap11 => exec_dup_nth(mach, 11),
-            Instruction::Swap12 => exec_dup_nth(mach, 12),
-            Instruction::Swap13 => exec_dup_nth(mach, 13),
-            Instruction::Swap14 => exec_dup_nth(mach, 14),
-            Instruction::Swap15 => exec_dup_nth(mach, 15),
-            Instruction::Swap16 => exec_dup_nth(mach, 16),
+            Instruction::Swap1 => exec_swap_nth(mach, 1),
+            Instruction::Swap2 => exec_swap_nth(mach, 2),
+            Instruction::Swap3 => exec_swap_nth(mach, 3),
+            Instruction::Swap4 => exec_swap_nth(mach, 4),
+            Instruction::Swap5 => exec_swap_nth(mach, 5),
+            Instruction::Swap6 => exec_swap_nth(mach, 6),
+            Instruction::Swap7 => exec_swap_nth(mach, 7),
+            Instruction::Swap8 => exec_swap_nth(mach, 8),
+            Instruction::Swap9 => exec_swap_nth(mach, 9),
+            Instruction::Swap10 => exec_swap_nth(mach, 10),
+            Instruction::Swap11 => exec_swap_nth(mach, 11),
+            Instruction::Swap12 => exec_swap_nth(mach, 12),
+            Instruction::Swap13 => exec_swap_nth(mach, 13),
+            Instruction::Swap14 => exec_swap_nth(mach, 14),
+            Instruction::Swap15 => exec_swap_nth(mach, 15),
+            Instruction::Swap16 => exec_swap_nth(mach, 16),
             Instruction::Log0 => todo!(),
             Instruction::Log1 => todo!(),
             Instruction::Log2 => todo!(),
