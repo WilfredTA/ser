@@ -134,5 +134,5 @@ fn test_swap() {
     stack.push(bvi(4));
     stack.swap_nth(2);
     assert_eq!(stack.peek().cloned().unwrap(), bvi(2));
-    assert_eq!(stack.peek_nth(2).cloned().unwrap(), bvi(2));
+    assert_eq!(stack.peek_nth(2).cloned().unwrap(), bvi(4));
 }

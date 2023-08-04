@@ -1,6 +1,6 @@
-#![allow(unused_imports)]
+#![allow(unused_imports, unused)]
 use ser::{
-    bvc, bvi, conversion::*, machine::*, memory::*, parser::*, stack::*, storage::*, traits::*,
+    bvc, bvi, conversion::*, machine::*, memory::*, parser::*, stack::*, storage::*, traits::*, instruction::Instruction,
 };
 use z3::ast::*;
 
@@ -14,19 +14,20 @@ fn main() {
     let execution = evm.exec();
     {
         let leaf = execution.states.leaves();
-        assert_eq!(2, leaf.len());
-
-        let final_tree = leaf.get(1).unwrap().clone();
-
-        let mut mem_val = final_tree.val.mem_read(bvi(64)); // 0x40
-        mem_val.simplify();
-        assert_eq!(bvi(128), mem_val); // 0x80
+        // as seen here https://bytegraph.xyz/bytecode/e5987a6f24f8af926faddae88de7980f/graph
+        assert_eq!(7, leaf.len());
     }
+  
+    
 
-    let mut report = std::string::String::default();
-    // execution.states.into_iter().for_each(|(state, constraint)| {
-    //     report = format!("{}\n{} -- Constraints: {:#?}", report, state, constraint);
-    // });
-    //eprintln!("Execution report: {}", report);
-    eprintln!("Tree: {:#?}", execution.states);
+   
+    let reachability_report = Evm::exec_check(execution);
+    println!("Report: {:#?}", reachability_report);
+    let traces = reachability_report.iter()
+        .map(|trace| trace.0.iter().map(|t| &t.1).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    println!("traces: {:#?}", traces);
+    let reverted_traces = traces.into_iter().filter(|t| *t.last().unwrap().clone() == Instruction::Revert).collect::<Vec<_>>();
+    println!("TRACES WITH REVERTS {:#?}", reverted_traces);
+    
 }

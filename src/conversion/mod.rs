@@ -81,6 +81,7 @@ impl<const SZ: usize> From<[u8; SZ]> for BitVec<SZ> {
         for i in value.iter() {
             let new_bv: BV<'static> = bvi::<1>(*i).into();
             bv = bv.concat(&new_bv).simplify();
+        
         }
         // eprintln!("VALUE CONVERTING FROM: {:#x?}", value);
         // eprintln!("BV IN SLICE CONVERT: {:#?} SIZE: {}", bv, bv.get_size());
@@ -90,6 +91,30 @@ impl<const SZ: usize> From<[u8; SZ]> for BitVec<SZ> {
     }
 }
 
+pub fn bitvec_array_to_bv<'ctx>(value: Vec<BitVec<1>>) -> BV<'ctx> {
+    let ctx: &'static Context = ctx();
+    let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8);
+    for i in value.iter() {
+        bv = bv.concat(i.as_ref()).simplify();
+    }
+    bv.extract((bv.get_size() - 8 - 1) as u32, 0)
+    .simplify()
+    
+}
+impl<const SZ: usize> TryFrom<Vec<BitVec<1>>> for BitVec<SZ> {
+    type Error = String;
+
+    fn try_from(value: Vec<BitVec<1>>) -> Result<Self, Self::Error> {
+        let ctx: &'static Context = ctx();
+        let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8);
+        for i in value.iter() {
+            bv = bv.concat(i.as_ref()).simplify();
+        }
+        Ok(bv.extract((bv.get_size() - 8 - 1) as u32, 0)
+        .simplify()
+        .into())
+    }
+}
 impl<const SZ: usize> AsRef<BV<'static>> for BitVec<SZ> {
     fn as_ref(&self) -> &BV<'static> {
         match &self.inner {

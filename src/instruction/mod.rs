@@ -4,6 +4,7 @@ use std::ops::{BitAnd, BitOr, BitXor};
 use ruint::aliases::U256;
 use z3_ext::ast::{Ast, Bool, BV};
 
+use crate::conversion::bitvec_array_to_bv;
 use crate::record::{push, MemChange, MemOp, StorageChange, StorageOp};
 use crate::state::env::*;
 use crate::state::evm::EvmState;
@@ -184,7 +185,7 @@ fn exec_dup_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
 }
 
 fn exec_swap_nth(mach: &EvmState, n: usize) -> MachineRecord<32> {
-    eprintln!("EXEC SWAP NTH CALLED. N: {}", n);
+   
     MachineRecord {
         stack: Some(StackChange {
             pop_qty: 0,
@@ -243,7 +244,17 @@ impl Instruction {
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
         match self {
-            Instruction::Stop => todo!(),
+            Instruction::Stop => {
+                MachineRecord {
+                    halt: true,
+                    stack: None,
+                    mem: None,
+                    constraints: None,
+                    storage: None,
+                    pc: (mach.pc(), mach.pc())
+                }
+            }
+            ,
             Instruction::Add => {
                 let stack = mach.stack();
                 let [stack_top, stack_top2] = stack.peek_top().unwrap();
@@ -608,7 +619,44 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     storage: None,
                 }
             }
-            Instruction::Sha3 => todo!(),
+            Instruction::Sha3 => {
+                let stack = mach.stack();
+                let [ offset,  size] = stack.peek_top().unwrap();
+                let mut offsett = offset.clone();
+                let mut sizee = size.clone();
+                offsett.simplify();
+                sizee.simplify();
+              
+                let mem = mach.mem().read_with_offset(offsett.clone(), sizee.clone());
+                let sz = usize::from(sizee.clone());
+                
+                let mut bv: BV<'static> = bitvec_array_to_bv(mem);
+              
+               
+              
+                
+                let hashed = sha3(bv.get_size()).apply(&[&bv]);
+            
+                let hashed: BitVec<32> = hashed.as_bv().unwrap().into();
+                let mem_change = MemChange {
+                    ops_log: vec![MemOp::Read {idx: offsett.clone()}]
+                };
+                let stack_change = StackChange::with_ops(vec![
+                    StackOp::Pop,
+                    StackOp::Pop,
+                    StackOp::Push(hashed)
+                ]);
+                
+                MachineRecord {
+                    stack: Some(stack_change),
+                    mem: Some(mem_change),
+                    pc:  (mach.pc(), mach.pc() + self.byte_size()),
+                    constraints: None,
+                    halt: false,
+                    storage: None,
+                }
+                
+            },
             Instruction::Address => todo!(),
             Instruction::Balance => {
                 let stack = mach.stack();
@@ -842,6 +890,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::MLoad => {
                 let stack = mach.stack();
                 let dest = stack.peek().unwrap();
+                let mut dest = dest.clone();
+                dest.simplify();
+           
                 let mut val_mem = mach.memory.read_word(dest.clone());
                 val_mem.simplify();
 
@@ -965,7 +1016,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Jump => {
                 let jump_dest = mach.stack().peek().unwrap();
-                eprintln!("JUMP DEST IN UNCONDITIONAL JUMP: {:#?}", jump_dest);
+              
                 let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
                 let stack_rec = StackChange {
                     pop_qty: 1,
@@ -997,7 +1048,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     push_qty: 0,
                     ops: vec![StackOp::Pop, StackOp::Pop],
                 };
-                eprintln!("JUMPI REACHED");
+               
 
                 MachineRecord {
                     stack: Some(stack_rec),
