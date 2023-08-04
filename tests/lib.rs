@@ -84,7 +84,7 @@ PUSH1 0x10
 RETURN
 
 
-MAYBE REVERT: 
+MAYBE REVERT:
 PUSH1 0x42
 PUSH1 0x00
 PUSH2 0x5000
@@ -138,4 +138,3 @@ fn test_swap2_jumpi_maybe_revert() {
         reachability_report.get(1).unwrap().1.unwrap()
     );
 }
-

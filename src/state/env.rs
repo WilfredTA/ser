@@ -1,4 +1,4 @@
-use z3_ext::ast::{Ast, AstKind, Array, BV};
+use z3_ext::ast::{Array, Ast, AstKind, BV};
 
 use z3_ext::FuncDecl;
 use z3_ext::Sort;
@@ -35,7 +35,7 @@ pub fn sha3<'ctx>(size: u32) -> FuncDecl<'ctx> {
         ctx(),
         format!("sha3_{}", id).as_str(),
         &[&Sort::bitvector(ctx(), size)],
-         &Sort::bitvector(ctx(), 256)
+        &Sort::bitvector(ctx(), 256),
     );
 
     eprintln!("SHA3 FUNC: {:#?}", func);

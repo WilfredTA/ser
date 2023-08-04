@@ -76,11 +76,15 @@ impl Memory {
         val
     }
 
-    pub fn read_with_offset(&self, offset: Index, size: impl Into<usize> + Clone) -> Vec<BitVec<1>> {
+    pub fn read_with_offset(
+        &self,
+        offset: Index,
+        size: impl Into<usize> + Clone,
+    ) -> Vec<BitVec<1>> {
         let idx: usize = offset.into();
-        
+
         eprintln!("IDX: {idx:} and size: {:#?}", size.clone().into());
-        let val = self.inner[idx .. (idx + size.clone().into())].to_vec();
+        let val = self.inner[idx..(idx + size.clone().into())].to_vec();
         eprintln!("VAL IN MEM READ EITH OFFSET: {:#?}", val);
         val
     }
