@@ -1,6 +1,6 @@
----- machine::machine_returns_one_exec_for_non_branching_pgm stdout ----
 
 
+```
 ------- Reachable State ---------
 State EvmState {
     memory: Memory {
@@ -1022,3 +1022,4 @@ StateTree {
     ),
     right: None,
 }
+```

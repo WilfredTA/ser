@@ -2,3 +2,6 @@
 .z3-trace
 *.txt.log*
 .idea/*
+*.hex
+*.evm
+*.txt
