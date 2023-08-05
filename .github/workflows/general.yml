@@ -23,7 +23,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: cargo test
-        run: cargo test
+        run: RUST_MIN_STACK=8388608 cargo test
 
       - name: cargo fmt
         run: cargo fmt --all -- --check

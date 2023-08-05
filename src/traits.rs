@@ -43,7 +43,7 @@ pub trait Machine<const STACK_ITEM_SZ: usize> {
 
 pub trait MachineInstruction<'ctx, const SZ: usize> {
     type Error;
-    fn exec(&self, mach: &EvmState) -> Result<MachineRecord<SZ>, Self::Error>;
+    fn exec(&self, mach: &EvmState) -> MachineRecord<SZ>;
 }
 
 pub trait MachineComponent {

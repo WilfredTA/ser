@@ -24,6 +24,9 @@ ethers-solc = { git = "https://github.com/gakonst/ethers-rs", features = ["full"
 paste = "1.0.12"
 rlp = "0.5.2"
 serde = "1.0.164"
+backtrace-on-stack-overflow = "0.3.0"
+justerror = "1.1.0"
+thiserror = "1.0.44"
 
 [target.'cfg(any(target_os = "windows", target_os = "macos"))'.dependencies]
 z3 = {version = "0.11.2", features = ["static-link-z3"]}

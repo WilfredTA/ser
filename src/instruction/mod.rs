@@ -27,7 +27,6 @@ use super::smt::*;
 #[Error]
 pub enum InstructionError {
     StackEmpty{
-        instruction: Instruction,
         pc: usize,
     }
 }
@@ -252,16 +251,16 @@ impl Instruction {
 }
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     type Error = InstructionError;
-    fn exec(&self, mach: &EvmState) -> Result<MachineRecord<32>, InstructionError> {
+    fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
         match self {
-            Instruction::Stop => Ok(MachineRecord {
+            Instruction::Stop => MachineRecord {
                 halt: true,
                 stack: None,
                 mem: None,
                 constraints: None,
                 storage: None,
                 pc: (mach.pc(), mach.pc()),
-            }),
+            },
             Instruction::Add => {
                 let stack = mach.stack();
                 let [stack_top, stack_top2] = stack.peek_top().unwrap();
