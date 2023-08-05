@@ -61,11 +61,11 @@ impl<'ctx> EvmState {
     pub fn set_pc(&mut self, new_pc: usize) {
         self.pc = new_pc;
         if self.pc >= self.pgm.get_size() {
-            eprintln!(
-                "SET PC--- PC: {} -- PGM SIZE: {}",
-                self.pc,
-                self.pgm.get_size()
-            );
+            // eprintln!(
+            //     "SET PC--- PC: {} -- PGM SIZE: {}",
+            //     self.pc,
+            //     self.pgm.get_size()
+            // );
             self.halt = true;
         }
     }

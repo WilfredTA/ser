@@ -26,8 +26,12 @@ impl<'a> Parser<'a> {
         let mut skip_size = 0;
         let mut idx = 0_usize;
         let mut pgm_map = HashMap::new();
+        let mut pgm_bytes = vec![];
         for b in &bytes {
             let b = *b;
+            let b_bv: [u8;1] = [b];
+            let bv_b: BitVec<1> = BitVec::from(b_bv);
+            pgm_bytes.push(bv_b);
             if skip_size > 0 {
                 skip_size -= 1;
                 continue;
@@ -60,6 +64,7 @@ impl<'a> Parser<'a> {
             map: pgm_map,
             pgm,
             size: idx + 1,
+            bytes: pgm_bytes
         }
     }
 }
@@ -531,6 +536,7 @@ pub struct Program {
     pub map: HashMap<usize, Instruction>,
     pgm: Vec<Instruction>,
     pub size: usize,
+    pub bytes: Vec<BitVec<1>>
 }
 
 impl Program {

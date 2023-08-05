@@ -14,7 +14,7 @@ use z3_ext::{ast::Ast, Context};
 
 impl From<Uint<256, 4>> for BitVec<32> {
     fn from(value: Uint<256, 4>) -> Self {
-        let mut bv: BV<'static> = BV::from_u64(ctx(), 0, 8);
+        let mut bv: BV<'static> = BV::from_u64(ctx(), 0, 8_u32);
         let bytes: [u8; 32] = value.clone().to_be_bytes();
 
         for i in bytes.iter() {
@@ -76,7 +76,7 @@ impl<const SZ: usize> From<BitVec<SZ>> for BV<'static> {
 impl<const SZ: usize> From<[u8; SZ]> for BitVec<SZ> {
     fn from(value: [u8; SZ]) -> Self {
         let ctx: &'static Context = ctx();
-        let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8);
+        let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8_u32);
 
         for i in value.iter() {
             let new_bv: BV<'static> = bvi::<1>(*i).into();
@@ -92,7 +92,7 @@ impl<const SZ: usize> From<[u8; SZ]> for BitVec<SZ> {
 
 pub fn bitvec_array_to_bv<'ctx>(value: Vec<BitVec<1>>) -> BV<'ctx> {
     let ctx: &'static Context = ctx();
-    let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8);
+    let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8_u32);
     for i in value.iter() {
         bv = bv.concat(i.as_ref()).simplify();
     }
@@ -103,7 +103,7 @@ impl<const SZ: usize> TryFrom<Vec<BitVec<1>>> for BitVec<SZ> {
 
     fn try_from(value: Vec<BitVec<1>>) -> Result<Self, Self::Error> {
         let ctx: &'static Context = ctx();
-        let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8);
+        let mut bv: BV<'static> = BV::from_u64(ctx, 0, 8_u32);
         for i in value.iter() {
             bv = bv.concat(i.as_ref()).simplify();
         }

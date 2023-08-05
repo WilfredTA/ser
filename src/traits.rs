@@ -1,3 +1,5 @@
+use std::error::Error;
+
 use crate::exec::Execution;
 use crate::instruction::Instruction;
 use crate::machine::{ExecBranch, ExecutionSummary};
@@ -30,7 +32,7 @@ pub trait MachineState<const STACK_ITEM_SZ: usize> {
 
 pub trait Machine<const STACK_ITEM_SZ: usize> {
     type State: MachineState<STACK_ITEM_SZ>;
-
+    
     // All possible final states
     fn exec(&mut self) -> Execution;
     fn pgm(&self) -> Program;
@@ -40,6 +42,7 @@ pub trait Machine<const STACK_ITEM_SZ: usize> {
 }
 
 pub trait MachineInstruction<'ctx, const SZ: usize> {
+    type Error;
     fn exec(&self, mach: &EvmState) -> MachineRecord<SZ>;
 }
 

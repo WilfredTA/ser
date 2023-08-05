@@ -33,8 +33,12 @@ fn can_run_simple_storage_pgm() {
 
     let execution = evm.exec();
     let leaf = execution.states.leaves();
-    assert_eq!(2, leaf.len());
-    eprintln!("LEAVES: {:#?}", leaf);
+
+    {
+        let leaf = execution.states.leaves();
+        // as seen here https://bytegraph.xyz/bytecode/e5987a6f24f8af926faddae88de7980f/graph
+        assert_eq!(7, leaf.len());
+    }
     let final_tree = leaf.get(1).unwrap().clone();
     // eprintln!("FINAL TREE: {:#?}", final_tree);
     let mut mem_val = final_tree.val.mem_read(bvi(64));

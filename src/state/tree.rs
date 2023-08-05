@@ -185,19 +185,19 @@ impl<'ctx> StateTree<'ctx> {
 
     pub fn insert_left_helper(
         &mut self,
-        tree: impl Into<StateTree<'ctx>>,
+        tree: &StateTree<'ctx>,
         id: Uuid,
     ) -> Option<&StateTree> {
-        let tree = tree.into();
+        
         let inserted_id = tree.id.id;
 
         if self.id.id == id {
-            let tree = Box::new(tree);
+            let tree = Box::new(tree.clone());
             self.left = Some(tree);
             self.left.as_ref().map(|t| t.as_ref())
         } else {
             let left_result = if let Some(left) = &mut self.left {
-                left.insert_left_helper(tree.clone(), id)
+                left.insert_left_helper(tree, id)
             } else {
                 None
             };
@@ -243,8 +243,44 @@ impl<'ctx> StateTree<'ctx> {
             }
         }
     }
+
+    pub fn insert_right_helper_iterative(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Option<&StateTree> {
+        let mut queue = vec![self];
+        while let Some(current) = queue.pop() {
+            if current.id.id() == id {
+                current.right = Some(Box::new(tree.into()));
+                
+               return  current.right.as_ref().map(|t| t.as_ref())
+            }
+            if let Some(ref mut left) = current.left {
+                queue.insert(0, left);
+            }
+            if let Some(ref mut right) = current.right {
+                queue.insert(0, right);
+            }
+        }
+        None
+    }
+    pub fn insert_left_helper_iterative(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> Option<&StateTree> {
+        let mut queue = vec![self];
+        while let Some(current) = queue.pop() {
+            if current.id.id() == id {
+                current.left = Some(Box::new(tree.into()));
+                
+               return  current.left.as_ref().map(|t| t.as_ref())
+            }
+            if let Some(ref mut left) = current.left {
+                queue.insert(0, left);
+            }
+            if let Some(ref mut right) = current.right {
+                queue.insert(0, right);
+            }
+        }
+        None
+    }
     pub fn insert_left_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> NodeId {
-        match self.insert_left_helper(tree, id) {
+        let tree = tree.into();
+        match self.insert_left_helper(&tree, id) {
             Some(i) => i.id.clone(),
             None => panic!("Could not find id {id} in the state tree"),
         }
@@ -263,7 +299,7 @@ impl<'ctx> StateTree<'ctx> {
     }
 
     pub fn insert_right_of(&mut self, tree: impl Into<StateTree<'ctx>>, id: Uuid) -> NodeId {
-        match self.insert_right_helper(tree, id) {
+        match self.insert_right_helper_iterative(tree, id) {
             Some(i) => i.id.clone(),
             None => panic!("Could not find id {id} in the state tree"),
         }

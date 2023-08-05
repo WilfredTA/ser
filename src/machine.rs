@@ -216,16 +216,16 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         let mut ids = vec![];
         loop {
             if let Some(step) = step_recs.pop() {
-                eprintln!(
-                    "HALTED LEFT: {}, HALTED RIGHT: {}",
-                    step.halted_left(),
-                    step.halted_right()
-                );
-                eprintln!(
-                    "LEFT ID: {:#?} RIGHT ID: {:#?}",
-                    step.left_id(),
-                    step.right_id()
-                );
+                // eprintln!(
+                //     "HALTED LEFT: {}, HALTED RIGHT: {}",
+                //     step.halted_left(),
+                //     step.halted_right()
+                // );
+                // eprintln!(
+                //     "LEFT ID: {:#?} RIGHT ID: {:#?}",
+                //     step.left_id(),
+                //     step.right_id()
+                // );
                 // if !step.halted_right() {
                 //     let continue_from_right = step.right_id();
                 if let Some(right_id) = step.right_id() {
