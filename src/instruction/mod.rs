@@ -648,7 +648,18 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     storage: None,
                 }
             }
-            Instruction::Address => todo!(),
+            Instruction::Address => {
+                let addr = mach.address.as_ref();
+                let addr = addr.zero_ext(12 * 8);
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(vec![StackOp::Push(addr.into())])),
+                    mem: None,
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
+                    constraints: None,
+                    halt: false,
+                    storage: None,
+                }
+            },
             Instruction::Balance => {
                 let stack = mach.stack();
                 let addr = stack.peek().unwrap();
@@ -1082,7 +1093,19 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     constraints: None,
                 }
             }
-            Instruction::Gas => todo!(),
+            Instruction::Gas => {
+                let gas_arg: BitVec<256> = random_bv_arg();
+                let gas = gas().apply(&[gas_arg.as_ref()]).as_bv().unwrap();
+                MachineRecord {
+                    stack: Some(StackChange::with_ops(vec![StackOp::Push(gas.into())])),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
+                    mem: None,
+                    halt: false,
+                    storage: None,
+                    constraints: None,
+                }
+
+            },
             Instruction::JumpDest => MachineRecord {
                 stack: None,
                 pc: (mach.pc(), mach.pc() + self.byte_size()),

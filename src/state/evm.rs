@@ -23,6 +23,7 @@ pub struct EvmState {
     pub halt: bool,
 }
 
+
 impl MachineComponent for EvmState {
     type Record = MachineRecord<32>;
 
