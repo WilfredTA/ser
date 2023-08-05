@@ -21,13 +21,25 @@ impl<const SZ: usize> Stack<SZ> {
     }
 
     pub fn pop(&mut self) -> BitVec<SZ> {
-        eprintln!("STACK SIZE: {} AND STACK TOP {:#?}", self.size, self.peek());
+       // eprintln!("STACK SIZE: {} AND STACK TOP {:#?}", self.size, self.peek());
         self.size -= 1;
         self.stack.pop().unwrap()
     }
 
     pub fn peek(&self) -> Option<&BitVec<SZ>> {
-        self.stack.get(self.size - 1)
+        if (self.size) >= self.stack.len() {
+            eprintln!("ERROR: STACK SIZE IS INCONSISTENT WITH INTERNAL STACK... Stack size: {}, internal stack len: {}, stack: {:#?}", 
+            self.size,
+            self.stack.len(),
+            self.stack
+        );
+        }
+        if self.size == 0 {
+            self.stack.get(0)
+        } else {
+
+            self.stack.get(self.size - 1)
+        }
     }
 
     pub fn size(&self) -> usize {
@@ -45,7 +57,7 @@ impl<const SZ: usize> Stack<SZ> {
 
     // where n is stack modulo top element;
     pub(crate) fn swap_nth(&mut self, swap_depth: usize) {
-        eprintln!("SWAP EXECUTING AT DEPTH: {}", swap_depth);
+        //eprintln!("SWAP EXECUTING AT DEPTH: {}", swap_depth);
         if swap_depth < self.size() {
             let mut new_stack = self.stack.clone();
             let top_idx = self.size - 1;
@@ -56,7 +68,7 @@ impl<const SZ: usize> Stack<SZ> {
                 swap_depth,
                 self.size()
             ));
-            eprintln!("STACK BEFORE SWAP: {:#?}", new_stack);
+            //eprintln!("STACK BEFORE SWAP: {:#?}", new_stack);
             new_stack = new_stack
                 .into_iter()
                 .enumerate()
@@ -70,7 +82,7 @@ impl<const SZ: usize> Stack<SZ> {
                     }
                 })
                 .collect::<SmallVec<_>>();
-            eprintln!("STACK AFTER SWAP: {:#?}", new_stack);
+            //eprintln!("STACK AFTER SWAP: {:#?}", new_stack);
             // new_stack.remove(swap_idx);
             // new_stack.insert(swap_idx, top);
             // new_stack.pop();
@@ -112,12 +124,12 @@ impl<const SZ: usize> MachineComponent for Stack<SZ> {
         });
 
         if swap_depth > 0 {
-            eprintln!(
-                "SWAP OCCURRING of DEPTH {}. STACK BEFORE: {:#?}",
-                swap_depth, new_stack
-            );
+            // eprintln!(
+            //     "SWAP OCCURRING of DEPTH {}. STACK BEFORE: {:#?}",
+            //     swap_depth, new_stack
+            // );
             new_stack.swap_nth(swap_depth as usize);
-            eprintln!("STACK AFTER {:#?}", new_stack);
+           // eprintln!("STACK AFTER {:#?}", new_stack);
         }
 
         self.stack = new_stack.stack;

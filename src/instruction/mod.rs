@@ -8,6 +8,7 @@ use crate::conversion::bitvec_array_to_bv;
 use crate::record::{push, MemChange, MemOp, StorageChange, StorageOp};
 use crate::state::env::*;
 use crate::state::evm::EvmState;
+use crate::state::tree::StateTree;
 use crate::storage::StorageValue;
 use crate::traits::*;
 use crate::{
@@ -19,8 +20,17 @@ use crate::{
     stack::Stack,
 };
 
+use justerror::Error;
 use super::smt::*;
 
+
+#[Error]
+pub enum InstructionError {
+    StackEmpty{
+        instruction: Instruction,
+        pc: usize,
+    }
+}
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Instruction {
     Stop,
@@ -241,16 +251,17 @@ impl Instruction {
     }
 }
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
-    fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
+    type Error = InstructionError;
+    fn exec(&self, mach: &EvmState) -> Result<MachineRecord<32>, InstructionError> {
         match self {
-            Instruction::Stop => MachineRecord {
+            Instruction::Stop => Ok(MachineRecord {
                 halt: true,
                 stack: None,
                 mem: None,
                 constraints: None,
                 storage: None,
                 pc: (mach.pc(), mach.pc()),
-            },
+            }),
             Instruction::Add => {
                 let stack = mach.stack();
                 let [stack_top, stack_top2] = stack.peek_top().unwrap();
@@ -751,7 +762,63 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::CallDataCopy => todo!(),
             Instruction::CodeSize => todo!(),
-            Instruction::CodeCopy => todo!(),
+            Instruction::CodeCopy => {
+                let stack = mach.stack();
+                let [dest_offset, src_offset, size] = stack.peek_top().unwrap();
+                let mut dest_offset = dest_offset.clone();
+                let mut src_offset = src_offset.clone();
+                let mut size = size.clone();
+                dest_offset.simplify();
+                src_offset.simplify();
+                size.simplify();
+                // eprintln!("MACH PC: {:#?}", mach.pc());
+                // eprintln!("MEM DEST OFFSET {:#?}, MEM READ OFFSET: {:#?}, MEM ITEM SIZE: {:#?}, MEM SIZE: {:#?}", 
+                //     dest_offset, 
+                //     src_offset, 
+                //     usize::from(size.clone()), 
+                //     mach.mem().m_size());
+                // eprintln!("TOTAL CODE BYTE LEN: {:#?}, TOTAL CODE SIZE: {:#?}", mach.pgm.bytes.len(), mach.pgm.get_size());
+
+                let code_last_idx_to_read = usize::from(src_offset.clone()) + usize::from(size.clone());
+                let code = &mach.pgm.bytes[src_offset.clone().into()..code_last_idx_to_read].to_vec();
+                //eprintln!("CODE SIZE: {:#?}", code.len());
+                let mut i: usize = 0;
+                let mut mem_ops = vec![];
+                loop {
+                    if i >= code.len() {
+                        break;
+                    }
+                    let offset_add: BitVec<32> = bvi(i as i32);
+                    let mut idx = (dest_offset.as_ref().bvadd(offset_add.as_ref())).simplify();
+                    mem_ops.push(
+                        MemOp::WriteByte { idx: idx.into(), val: code.get(i).expect(
+                            &format!("Couldnt get code byte at index {}", i)
+                        ).clone() }
+                    );
+                   
+                    i += 1;
+                }
+                let stack_change = StackChange::with_ops(
+                    vec![
+                        StackOp::Pop,
+                        StackOp::Pop,
+                        StackOp::Pop
+                    ]
+                );
+                
+                MachineRecord {
+                    stack: Some(stack_change),
+                    mem: Some(MemChange {
+                        ops_log: mem_ops
+                    }),
+                    pc: (mach.pc(), mach.pc() + self.byte_size()),
+                    constraints: None,
+                    halt: false,
+                    storage: None,
+                }
+                
+                
+            },
             Instruction::GasPrice => {
                 let stack = mach.stack();
                 let price = gas_price().apply(&[]).as_bv().unwrap();
@@ -1017,7 +1084,10 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 }
             }
             Instruction::Jump => {
-                let jump_dest = mach.stack().peek().unwrap();
+                
+                let jump_dest = mach.stack().peek().expect(&format!("
+                    Expected stack.peek() to return, but didnt. Stack: {:#?}, pc: {}, 
+                ", mach.stack(), mach.pc()));
 
                 let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
                 let stack_rec = StackChange {
@@ -1040,7 +1110,7 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                 let cond = mach.stack().peek_nth(1).unwrap();
                 let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
 
-                let bv_zero = BV::from_u64(ctx(), 0, 256);
+                let bv_zero = BV::from_u64(ctx(), 0, 256_u32);
                 let cond = cond.as_ref()._eq(&bv_zero);
                 let cond = Bool::not(&cond);
 
