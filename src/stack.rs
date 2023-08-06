@@ -27,19 +27,11 @@ impl<const SZ: usize> Stack<SZ> {
     }
 
     pub fn peek(&self) -> Option<&BitVec<SZ>> {
-        if (self.size) >= self.stack.len() {
-            eprintln!("ERROR: STACK SIZE IS INCONSISTENT WITH INTERNAL STACK... Stack size: {}, internal stack len: {}, stack: {:#?}", 
-            self.size,
-            self.stack.len(),
-            self.stack
-        );
-        }
         if self.size == 0 {
-            self.stack.get(0)
-        } else {
-
-            self.stack.get(self.size - 1)
+            return None;
+            eprintln!("SIZE IS 0.. STACK: {:#?}", self.stack);
         }
+        self.stack.get(self.size - 1)
     }
 
     pub fn size(&self) -> usize {

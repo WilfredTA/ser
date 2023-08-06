@@ -10,7 +10,7 @@ pub const STORAGE_SIMPLE: &str = r#"6080604052348015600f57600080fd5b506004361060
 fn main() {
     let pgm = Parser::with_pgm(STORAGE_SIMPLE).parse();
 
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
 
     let execution = evm.exec();
     {

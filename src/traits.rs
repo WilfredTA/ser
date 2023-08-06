@@ -8,6 +8,7 @@ use crate::parser::Program;
 use crate::record::{Index, MachineRecord, MemChange, StackChange, StorageChange};
 use crate::smt::BitVec;
 use crate::stack::Stack;
+use crate::state::context::ExecutionEnv;
 use crate::state::evm::EvmState;
 use crate::storage::{AccountStorage, StorageValue};
 use z3_ext::ast::Bool;
@@ -43,7 +44,7 @@ pub trait Machine<const STACK_ITEM_SZ: usize> {
 
 pub trait MachineInstruction<'ctx, const SZ: usize> {
     type Error;
-    fn exec(&self, mach: &EvmState) -> MachineRecord<SZ>;
+    fn exec(&self, mach: &EvmState, env: &ExecutionEnv) -> MachineRecord<SZ>;
 }
 
 pub trait MachineComponent {

@@ -7,7 +7,7 @@ use z3::ast::*;
 pub const SUPERSIMPLE: &str = r#"604260005260206000F3"#;
 fn main() {
     let pgm = Parser::with_pgm(SUPERSIMPLE).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
 
     let execution_trace = evm.exec();
     {

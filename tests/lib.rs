@@ -12,7 +12,7 @@ pub const STORAGE_SIMPLE: &str = r#"6080604052348015600f57600080fd5b506004361060
 
 fn can_run_simple_parsed_pgm() {
     let pgm = Parser::with_pgm(SUPERSIMPLE).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
 
     {
         let sat_branches = evm.exec();
@@ -29,7 +29,7 @@ fn can_run_simple_parsed_pgm() {
 #[test]
 fn can_run_simple_storage_pgm() {
     let pgm = Parser::with_pgm(STORAGE_SIMPLE).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
 
     let execution = evm.exec();
     let leaf = execution.states.leaves();
@@ -49,7 +49,7 @@ fn can_run_simple_storage_pgm() {
 #[test]
 fn can_run_counter_with_storage_mapping_pgm() {
     let pgm = Parser::with_pgm(COUNTER_WITH_STORAGE_MAPPING).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
 
     let execution = evm.exec();
     let leaf = execution.states.leaves();
@@ -107,7 +107,7 @@ const SWAP3_JUMPI_RETURN_16: &str = r#"60426000615000604091600e57fd5b6000f3"#;
 #[test]
 fn test_swap2_jumpi_revert() {
     let pgm = Parser::with_pgm(SWAP2_JUMPI_REVERT).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
     let execution = evm.exec();
     eprintln!("Execution tree: {:#?}", execution.states.clone());
     // Should have two paths: one reachable and one not. The reachable path should be the one in which there is a revert
@@ -126,7 +126,7 @@ fn test_swap2_jumpi_revert() {
 #[test]
 fn test_swap2_jumpi_maybe_revert() {
     let pgm = Parser::with_pgm(SWAP2_JUMPI_MAYBE_REVERT).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
     let execution = evm.exec();
     eprintln!("Execution tree: {:#?}", execution.states.clone());
     // Should have two paths: both reachable. The first reachable path is the one in which calldata is zero and there is a revert.

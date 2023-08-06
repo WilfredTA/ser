@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::sync::RwLock;
 use std::{borrow::BorrowMut, cell::RefCell, rc::Rc};
 use uuid::Uuid;
 
@@ -11,6 +12,7 @@ use crate::exec::Execution;
 use crate::instruction::*;
 use crate::memory::*;
 use crate::parser::Program;
+use crate::state::context::ExecutionEnv;
 use crate::state::evm::EvmState;
 use crate::state::tree::{NodeId, StateTree};
 use crate::storage::{AccountStorage, Address};
@@ -69,12 +71,12 @@ pub struct TransactionContext {
 // It also provides a handler to an Execution, which in turn provides a handler to EvmState
 // so that when an Instruction requires *reading* environmental / network state OR when an Instruction's behavior
 // *depends* on env / network state, it can access it through the Evm, which can be initialized with things like a Transaction context
-#[derive(Clone)]
 pub struct Evm<'ctx> {
     pgm: Program,
     pub states: StateTree<'ctx>,
     change_log: Vec<MachineRecord<32>>,
     pub inverse_state: HashMap<Uuid, Uuid>,
+    ctx: RwLock<ExecutionEnv<'ctx>>
 }
 
 impl<'ctx> Evm<'ctx> {
@@ -91,6 +93,7 @@ impl<'ctx> Evm<'ctx> {
             },
             change_log: vec![],
             inverse_state: Default::default(),
+            ctx: RwLock::new(ExecutionEnv::default())
         }
     }
 
@@ -100,7 +103,7 @@ impl<'ctx> Evm<'ctx> {
 }
 
 impl<'ctx> Evm<'ctx> {
-    pub fn new(pgm: Program) -> Self {
+    pub fn new(pgm: Program, env: ExecutionEnv<'ctx>) -> Self {
         let evm_state = EvmState::with_pgm(pgm.clone());
 
         Self {
@@ -114,6 +117,7 @@ impl<'ctx> Evm<'ctx> {
             },
             change_log: vec![],
             inverse_state: Default::default(),
+            ctx: RwLock::new(env)
         }
     }
 
@@ -211,7 +215,7 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
         let mut halt = false;
         let mut step_recs = vec![];
         let mut exec = Execution::new(self.states.val.clone(), self.pgm.clone());
-        let first_step = exec.step_mut();
+        let first_step = exec.step_mut(self.ctx.read().as_ref().unwrap());
         step_recs.push(first_step);
         let mut ids = vec![];
         loop {
@@ -230,7 +234,7 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
                 //     let continue_from_right = step.right_id();
                 if let Some(right_id) = step.right_id() {
                     ids.push(right_id.id());
-                    let nxt_right_step = exec.step_from_mut(right_id);
+                    let nxt_right_step = exec.step_from_mut(right_id, self.ctx.read().as_ref().unwrap());
                     step_recs.push(nxt_right_step);
                 }
                 //}
@@ -238,7 +242,7 @@ impl<'ctx> Machine<32> for Evm<'ctx> {
                 //     let continue_from_left = step.left_id();
                 if let Some(left_id) = step.left_id() {
                     ids.push(left_id.id());
-                    let nxt_step = exec.step_from_mut(left_id);
+                    let nxt_step = exec.step_from_mut(left_id, self.ctx.read().as_ref().unwrap());
                     step_recs.push(nxt_step);
                 }
                 // }

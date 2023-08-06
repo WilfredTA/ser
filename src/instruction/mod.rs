@@ -6,6 +6,7 @@ use z3_ext::ast::{Ast, Bool, BV};
 
 use crate::conversion::bitvec_array_to_bv;
 use crate::record::{push, MemChange, MemOp, StorageChange, StorageOp};
+use crate::state::context::ExecutionEnv;
 use crate::state::env::*;
 use crate::state::evm::EvmState;
 use crate::state::tree::StateTree;
@@ -251,7 +252,7 @@ impl Instruction {
 }
 impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
     type Error = InstructionError;
-    fn exec(&self, mach: &EvmState) -> MachineRecord<32> {
+    fn exec(&self, mach: &EvmState, env: &ExecutionEnv) -> MachineRecord<32> {
         match self {
             Instruction::Stop => MachineRecord {
                 halt: true,
@@ -704,8 +705,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Caller => {
                 let stack = mach.stack();
-                let caller = caller().apply(&[]).as_bv().unwrap();
-                let stack_diff = StackChange::with_ops(vec![pop(), push(caller.into())]);
+                let caller = env.caller();//caller().apply(&[]).as_bv().unwrap();
+                let stack_diff = StackChange::with_ops(vec![pop(), push(caller)]);
 
                 MachineRecord {
                     stack: Some(stack_diff),
@@ -733,8 +734,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             Instruction::CallDataLoad => {
                 let stack = mach.stack();
                 let offset = stack.peek().unwrap();
-                let call_data = call_data_load().apply(&[offset.as_ref()]).as_bv().unwrap();
-                let stack_diff = StackChange::with_ops(vec![pop(), push(call_data.into())]);
+                let call_data = env.calldataload(offset);
+                let stack_diff = StackChange::with_ops(vec![pop(), push(call_data)]);
 
                 MachineRecord {
                     stack: Some(stack_diff),
@@ -747,8 +748,8 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::CallDataSize => {
                 let stack = mach.stack();
-                let call_data_sz = call_data_size().apply(&[]).as_bv().unwrap();
-                let stack_diff = StackChange::with_ops(vec![push(call_data_sz.into())]);
+                let call_data_sz = env.calldatasize();
+                let stack_diff: StackChange<32> = StackChange::with_ops(vec![push(call_data_sz)]);
 
                 MachineRecord {
                     stack: Some(stack_diff),
@@ -1084,10 +1085,9 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
             }
             Instruction::Jump => {
                 
-                let jump_dest = mach.stack().peek().expect(&format!("
-                    Expected stack.peek() to return, but didnt. Stack: {:#?}, pc: {}, 
-                ", mach.stack(), mach.pc()));
-
+                let jump_dest = mach.stack().peek().unwrap();
+           
+                eprintln!("JUMP DEST: {:#?}", jump_dest);
                 let jump_dest_concrete = jump_dest.as_ref().simplify().as_u64().unwrap() as usize;
                 let stack_rec = StackChange {
                     pop_qty: 1,
@@ -1103,6 +1103,10 @@ impl<'ctx> MachineInstruction<'ctx, 32> for Instruction {
                     halt: false,
                     storage: None,
                 }
+                
+
+              
+               
             }
             Instruction::JumpI => {
                 let jump_dest = mach.stack().peek().unwrap();

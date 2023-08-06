@@ -1,3 +1,5 @@
+use std::sync::RwLock;
+
 use crate::machine::ExecBranch;
 use crate::parser::Program;
 use crate::state::tree::NodeId;
@@ -11,6 +13,8 @@ use crate::{
     traits::{MachineComponent, MachineInstruction},
 };
 use z3_ext::ast::Bool;
+
+use super::context::ExecutionEnv;
 
 #[derive(Clone, Default)]
 pub struct EvmState {

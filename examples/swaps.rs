@@ -52,7 +52,7 @@ const SWAP2_JUMPI_MAYBE_REVERT: &str = r#"6042600061500036600d57fd5b6000f3"#;
 const SWAP3_JUMPI_RETURN_16: &str = r#"60426000615000604091600e57fd5b6000f3"#;
 fn main() {
     let pgm = Parser::with_pgm(SWAP2_JUMPI_MAYBE_REVERT).parse();
-    let mut evm = Evm::new(pgm);
+    let mut evm = Evm::with_pgm(pgm);
     let execution = evm.exec();
     //eprintln!("Execution tree: {:#?}", execution.states.clone());
     // Should have two paths: both reachable. The first reachable path is the one in which calldata is zero and there is a revert.

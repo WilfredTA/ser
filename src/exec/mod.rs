@@ -1,6 +1,7 @@
 use uuid::Uuid;
 
 use crate::parser::Program;
+use crate::state::context::ExecutionEnv;
 use crate::state::evm::EvmState;
 use crate::state::tree::*;
 use crate::{
@@ -71,13 +72,13 @@ impl<'ctx> Execution<'ctx> {
     }
 
     // Returns the StepRecord AND updates the Exec state tree
-    pub fn step_mut(&mut self) -> StepRecord {
+    pub fn step_mut(&mut self, env: &ExecutionEnv) -> StepRecord {
         // bool returns if there is a branch
         let curr_state_id = self.states.id.clone();
         let mut curr_state = self.states.val.clone();
         let curr_inst = curr_state.curr_instruction();
         let curr_pc = curr_state.pc();
-        let change_rec = curr_inst.exec(&curr_state);
+        let change_rec = curr_inst.exec(&curr_state, &env);
         //eprintln!("CHANGE REC IN EXEC: {:#?}", change_rec);
         let is_branch = change_rec.constraints.is_some();
         if is_branch {
@@ -119,13 +120,13 @@ impl<'ctx> Execution<'ctx> {
     }
 
     // Returns the step record but does not mutate the Exec state tree
-    pub fn step(&self) -> StepRecord {
+    pub fn step(&self, env: &ExecutionEnv) -> StepRecord {
         // bool returns if there is a branch
         let curr_state_id = self.states.id.clone();
         let mut curr_state = self.states.val.clone();
         let curr_inst = curr_state.curr_instruction();
         let curr_pc = curr_state.pc();
-        let change_rec = curr_inst.exec(&curr_state);
+        let change_rec = curr_inst.exec(&curr_state, &env);
 
         let is_branch = change_rec.constraints.is_some();
         curr_state.apply_change(change_rec.clone());
@@ -155,9 +156,10 @@ impl<'ctx> Execution<'ctx> {
         }
     }
 
-    pub fn step_from_mut(&mut self, node_id: &NodeId) -> StepRecord {
+    pub fn step_from_mut(&mut self, node_id: &NodeId, env: &ExecutionEnv) -> StepRecord {
         let curr_state_id = node_id.clone();
         let mut curr_state_tree = self.states.find_by_id(node_id).unwrap().clone();
+        eprintln!("CURR STATE:{:#?} ", curr_state_tree);
         let mut curr_state = &mut curr_state_tree.val;
         if !curr_state.can_continue() {
             return StepRecord::new(true, true);
@@ -166,7 +168,9 @@ impl<'ctx> Execution<'ctx> {
         let curr_inst = curr_state.curr_instruction();
         let curr_pc = curr_state.pc();
         //eprintln!("CURR STATE IN STEP FROM MUT: {:#?}", curr_state);
-        let change_rec = curr_inst.exec(&curr_state);
+        
+        let change_rec = curr_inst.exec(&curr_state, &env);
+       
         eprintln!("CHANGE REC IN STEP: {:#?}", change_rec);
         eprintln!("Instruction: {:#?} STACK: {:#?}, ",curr_inst, curr_state.stack());
         
