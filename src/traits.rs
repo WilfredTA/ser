@@ -11,8 +11,21 @@ use crate::stack::Stack;
 use crate::state::context::ExecutionEnv;
 use crate::state::evm::EvmState;
 use crate::storage::{AccountStorage, StorageValue};
+use uuid::Uuid;
 use z3_ext::ast::Bool;
 
+
+pub trait NodeLike {
+    fn parent(&self) -> &Self;
+}
+pub trait Tree {
+    type Node;
+    fn insert_left_of(&mut self, id: Uuid, node: Self::Node) -> Option<Uuid>;
+    fn insert_right_of(&mut self, id: Uuid, node: Self::Node) -> Option<Uuid>;
+    fn leaves(&self) -> Vec<Self::Node>;
+    fn path_to(&self, id: Uuid) -> Vec<Self::Node>;
+    fn all_paths(&self) -> Vec<Vec<Self::Node>>;
+}
 pub trait MachineState<const STACK_ITEM_SZ: usize> {
     type PC;
 

@@ -263,7 +263,7 @@ fn push_op(sz: u8, val: &[u8]) -> Instruction {
             let val = zero_extend::<21>(val).into();
             push21(val)
         }
-        21 => {
+        22 => {
             let val = zero_extend::<22>(val).into();
             push22(val)
         }
